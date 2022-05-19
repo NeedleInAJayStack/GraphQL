@@ -197,4 +197,27 @@ class MapTests: XCTestCase {
             """
         )
     }
+    
+    func testDateCoding() throws {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        df.timeZone = TimeZone(secondsFromGMT: 0)
+        let date = try XCTUnwrap(df.date(from: "2022-05-19T14:08:48"))
+        
+        let decoder = MapDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        XCTAssertEqual(
+            try decoder.decode(Date.self, from: "2022-05-19T14:08:48Z"),
+            date
+        )
+        
+        let encoder = MapEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        
+        XCTAssertEqual(
+            try encoder.encode(date),
+            .string("2022-05-19T14:08:48Z")
+        )
+    }
 }
