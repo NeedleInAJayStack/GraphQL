@@ -1,29 +1,29 @@
-import XCTest
 import NIO
+import XCTest
 
 @testable import GraphQL
 
-class StarWarsQueryTests : XCTestCase {    
+class StarWarsQueryTests: XCTestCase {
     func testHeroNameQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        
+
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
         let query = """
-        query HeroNameQuery {
-            hero {
-                name
+            query HeroNameQuery {
+                hero {
+                    name
+                }
             }
-        }
-        """
-        
+            """
+
         let expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "R2-D2",
-                ],
+                    "name": "R2-D2"
+                ]
             ]
         )
 
@@ -32,28 +32,28 @@ class StarWarsQueryTests : XCTestCase {
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
-        
+
         XCTAssertEqual(result, expected)
     }
 
     func testHeroNameAndFriendsQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        
+
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
         let query = """
-        query HeroNameAndFriendsQuery {
-            hero {
-                id
-                name
-                friends {
+            query HeroNameAndFriendsQuery {
+                hero {
+                    id
                     name
+                    friends {
+                        name
+                    }
                 }
             }
-        }
-        """
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -65,7 +65,7 @@ class StarWarsQueryTests : XCTestCase {
                         ["name": "Han Solo"],
                         ["name": "Leia Organa"],
                     ],
-                ],
+                ]
             ]
         )
 
@@ -74,31 +74,31 @@ class StarWarsQueryTests : XCTestCase {
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
-        
+
         XCTAssertEqual(result, expected)
     }
 
     func testNestedQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        
+
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
         let query = """
-        query NestedQuery {
-            hero {
-                name
-                friends {
+            query NestedQuery {
+                hero {
                     name
-                    appearsIn
                     friends {
                         name
+                        appearsIn
+                        friends {
+                            name
+                        }
                     }
                 }
             }
-        }
-        """
+            """
 
         let expected = GraphQLResult(
             data: [
@@ -135,11 +135,15 @@ class StarWarsQueryTests : XCTestCase {
                             ],
                         ],
                     ],
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -149,35 +153,42 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeQuery {" +
-                    "    human(id: \"1000\") {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query FetchLukeQuery {
+            human(id: \"1000\") {
+                name
+            }
+        }
+        """
         let expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
-    func testOptionalVariable() throws{
+    func testOptionalVariable() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
-
-        let query = "query FetchHeroByEpisodeQuery($episode: String) {" +
-            "    hero(episode: $episode) {" +
-            "        name" +
-            "    }" +
-            "}"
+        
+        let query = """
+        query FetchHeroByEpisodeQuery($episode: String) {
+            hero(episode: $episode) {
+                name
+            }
+        }
+        """
 
         var params: [String: Map]
         var expected: GraphQLResult
@@ -189,28 +200,38 @@ class StarWarsQueryTests : XCTestCase {
         expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "R2-D2",
-                ],
+                    "name": "R2-D2"
+                ]
             ]
         )
 
-        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup,
+            variableValues: params
+        ).wait()
         XCTAssertEqual(result, expected)
 
         // or we can pass "EMPIRE" and expect Luke
         params = [
-            "episode": "EMPIRE",
+            "episode": "EMPIRE"
         ]
 
         expected = GraphQLResult(
             data: [
                 "hero": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
-        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup,
+            variableValues: params
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -220,58 +241,74 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchSomeIDQuery($someId: String!) {" +
-                    "    human(id: $someId) {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query FetchSomeIDQuery($someId: String!) {
+            human(id: $someId) {
+                name
+            }
+        }
+        """
+        
         var params: [String: Map]
         var expected: GraphQLResult
         var result: GraphQLResult
 
         params = [
-            "someId": "1000",
+            "someId": "1000"
         ]
 
         expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
-        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup,
+            variableValues: params
+        ).wait()
         XCTAssertEqual(result, expected)
 
         params = [
-            "someId": "1002",
+            "someId": "1002"
         ]
 
         expected = GraphQLResult(
             data: [
                 "human": [
-                    "name": "Han Solo",
-                ],
+                    "name": "Han Solo"
+                ]
             ]
         )
 
-        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup,
+            variableValues: params
+        ).wait()
         XCTAssertEqual(result, expected)
 
-
         params = [
-            "someId": "not a valid id",
+            "someId": "not a valid id"
         ]
 
         expected = GraphQLResult(
             data: [
-                "human": nil,
+                "human": nil
             ]
         )
 
-        result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup, variableValues: params).wait()
+        result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup,
+            variableValues: params
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -281,21 +318,27 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeAliasedQuery {" +
-                    "    luke: human(id: \"1000\") {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query FetchLukeAliasedQuery {
+            luke: human(id: \"1000\") {
+                name
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "luke": [
-                    "name": "Luke Skywalker",
-                ],
+                    "name": "Luke Skywalker"
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -305,118 +348,24 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query FetchLukeAndLeiaAliasedQuery {" +
-                    "    luke: human(id: \"1000\") {" +
-                    "        name" +
-                    "    }" +
-                    "    leia: human(id: \"1003\") {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query FetchLukeAndLeiaAliasedQuery {
+            luke: human(id: \"1000\") {
+                name
+            }
+            leia: human(id: \"1003\") {
+                name
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "luke": [
-                    "name": "Luke Skywalker",
+                    "name": "Luke Skywalker"
                 ],
                 "leia": [
-                    "name": "Leia Organa",
-                ],
-            ]
-        )
-
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
-        XCTAssertEqual(result, expected)
-    }
-
-    func testDuplicateFieldsQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
-        let query = "query DuplicateFieldsQuery {" +
-                    "    luke: human(id: \"1000\") {" +
-                    "        name" +
-                    "        homePlanet" +
-                    "    }" +
-                    "    leia: human(id: \"1003\") {" +
-                    "        name" +
-                    "        homePlanet" +
-                    "    }" +
-                    "}"
-
-        let expected = GraphQLResult(
-            data: [
-                "luke": [
-                    "name": "Luke Skywalker",
-                    "homePlanet": "Tatooine",
-                ],
-                "leia": [
-                    "name": "Leia Organa",
-                    "homePlanet": "Alderaan",
-                ],
-            ]
-        )
-
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
-        XCTAssertEqual(result, expected)
-    }
-
-    func testUseFragmentQuery() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
-        let query = "query UseFragmentQuery {" +
-                    "    luke: human(id: \"1000\") {" +
-                    "        ...HumanFragment" +
-                    "    }" +
-                    "    leia: human(id: \"1003\") {" +
-                    "        ...HumanFragment" +
-                    "    }" +
-                    "}" +
-                    "fragment HumanFragment on Human {" +
-                    "    name" +
-                    "    homePlanet" +
-                    "}"
-
-        let expected = GraphQLResult(
-            data: [
-                "luke": [
-                    "name": "Luke Skywalker",
-                    "homePlanet": "Tatooine",
-                ],
-                "leia": [
-                    "name": "Leia Organa",
-                    "homePlanet": "Alderaan",
-                ],
-            ]
-        )
-
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
-        XCTAssertEqual(result, expected)
-    }
-
-    func testCheckTypeOfR2Query() throws {
-        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        defer {
-            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
-        }
-
-        let query = "query CheckTypeOfR2Query {" +
-                    "    hero {" +
-                    "        __typename" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
-        let expected = GraphQLResult(
-            data: [
-                "hero": [
-                    "__typename": "Droid",
-                    "name": "R2-D2",
+                    "name": "Leia Organa"
                 ],
             ]
         )
@@ -426,7 +375,121 @@ class StarWarsQueryTests : XCTestCase {
             request: query,
             eventLoopGroup: eventLoopGroup
         ).wait()
+        XCTAssertEqual(result, expected)
+    }
+
+    func testDuplicateFieldsQuery() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+
+        let query = """
+        query DuplicateFieldsQuery {
+            luke: human(id: \"1000\") {
+                name
+                homePlanet
+            }
+            leia: human(id: \"1003\") {
+                name
+                homePlanet
+            }
+        }
+        """
         
+        let expected = GraphQLResult(
+            data: [
+                "luke": [
+                    "name": "Luke Skywalker",
+                    "homePlanet": "Tatooine",
+                ],
+                "leia": [
+                    "name": "Leia Organa",
+                    "homePlanet": "Alderaan",
+                ],
+            ]
+        )
+
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        XCTAssertEqual(result, expected)
+    }
+
+    func testUseFragmentQuery() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+
+        let query = """
+        query UseFragmentQuery {
+            luke: human(id: \"1000\") {
+                ...HumanFragment
+            }
+            leia: human(id: \"1003\") {
+                ...HumanFragment
+            }
+        }
+        fragment HumanFragment on Human {
+            name
+            homePlanet
+        }
+        """
+        
+        let expected = GraphQLResult(
+            data: [
+                "luke": [
+                    "name": "Luke Skywalker",
+                    "homePlanet": "Tatooine",
+                ],
+                "leia": [
+                    "name": "Leia Organa",
+                    "homePlanet": "Alderaan",
+                ],
+            ]
+        )
+
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        XCTAssertEqual(result, expected)
+    }
+
+    func testCheckTypeOfR2Query() throws {
+        let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+        defer {
+            XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
+        }
+
+        let query = """
+        query CheckTypeOfR2Query {
+            hero {
+                __typename
+                name
+            }
+        }
+        """
+        
+        let expected = GraphQLResult(
+            data: [
+                "hero": [
+                    "__typename": "Droid",
+                    "name": "R2-D2",
+                ]
+            ]
+        )
+
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+
         XCTAssertEqual(result, expected)
     }
 
@@ -436,23 +499,29 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query CheckTypeOfLukeQuery {" +
-                    "    hero(episode: EMPIRE) {" +
-                    "        __typename" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query CheckTypeOfLukeQuery {
+            hero(episode: EMPIRE) {
+                __typename
+                name
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "hero": [
                     "__typename": "Human",
                     "name": "Luke Skywalker",
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -462,19 +531,21 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryQuery {\n" +
-                    "    hero {\n" +
-                    "        name\n" +
-                    "        secretBackstory\n" +
-                    "    }\n" +
-                    "}\n"
-
+        let query = """
+        query SecretBackstoryQuery {
+            hero {
+                name
+                secretBackstory
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "hero": [
                     "name": "R2-D2",
                     "secretBackstory": nil,
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
@@ -485,7 +556,11 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -495,16 +570,18 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryListQuery {\n" +
-                    "    hero {\n" +
-                    "        name\n" +
-                    "        friends {\n" +
-                    "            name\n" +
-                    "            secretBackstory\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "}\n"
-
+        let query = """
+        query SecretBackstoryListQuery {
+            hero {
+                name
+                friends {
+                    name
+                    secretBackstory
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "hero": [
@@ -523,7 +600,7 @@ class StarWarsQueryTests : XCTestCase {
                             "secretBackstory": nil,
                         ],
                     ],
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
@@ -544,7 +621,11 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -554,30 +635,36 @@ class StarWarsQueryTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query SecretBackstoryAliasQuery {\n" +
-                    "    mainHero: hero {\n" +
-                    "        name\n" +
-                    "        story: secretBackstory\n" +
-                    "    }\n" +
-                    "}\n"
+        let query = """
+        query SecretBackstoryAliasQuery {
+            mainHero: hero {
+                name
+                story: secretBackstory
+            }
+        }
+        """
 
         let expected = GraphQLResult(
             data: [
                 "mainHero": [
                     "name": "R2-D2",
                     "story": nil,
-                ],
+                ]
             ],
             errors: [
                 GraphQLError(
                     message: "secretBackstory is secret.",
                     locations: [SourceLocation(line: 4, column: 9)],
                     path: ["mainHero", "story"]
-                ),
+                )
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -605,7 +692,7 @@ class StarWarsQueryTests : XCTestCase {
                 "throws": GraphQLField(
                     type: GraphQLNonNull(GraphQLString),
                     resolve: { _, _, _, _ -> [String: String]? in
-                        struct 🏃 : Error, CustomStringConvertible {
+                        struct 🏃: Error, CustomStringConvertible {
                             let description: String
                         }
 
@@ -627,86 +714,93 @@ class StarWarsQueryTests : XCTestCase {
             ]
         )
 
-          let schema = try GraphQLSchema(
+        let schema = try GraphQLSchema(
             query: queryType
-          )
+        )
 
-        let query = "query {\n" +
-                    "    nullableA {\n" +
-                    "        nullableA {\n" +
-                    "            nonNullA {\n" +
-                    "                nonNullA {\n" +
-                    "                    throws\n" +
-                    "                }\n" +
-                    "            }\n" +
-                    "        }\n" +
-                    "    }\n" +
-                    "}\n"
-
+        let query = """
+        query {
+            nullableA {
+                nullableA {
+                    nonNullA {
+                        nonNullA {
+                            throws
+                        }
+                    }
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "nullableA": [
-                    "nullableA": nil,
-                ],
+                    "nullableA": nil
+                ]
             ],
             errors: [
                 GraphQLError(
                     message: "catch me if you can.",
                     locations: [SourceLocation(line: 6, column: 21)],
                     path: ["nullableA", "nullableA", "nonNullA", "nonNullA", "throws"]
-                ),
+                )
             ]
         )
 
-        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(schema: schema, request: query, eventLoopGroup: eventLoopGroup)
+            .wait()
         XCTAssertEqual(result, expected)
     }
-    
+
     func testFieldOrderQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-        
+
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
-        
-        XCTAssertEqual(try graphql(
-            schema: starWarsSchema,
-            request: """
-                query HeroNameQuery {
-                    hero {
-                        id
-                        name
+
+        XCTAssertEqual(
+            try graphql(
+                schema: starWarsSchema,
+                request: """
+                    query HeroNameQuery {
+                        hero {
+                            id
+                            name
+                        }
                     }
-                }
-                """,
-            eventLoopGroup: eventLoopGroup
-        ).wait(), GraphQLResult(
-            data: [
-                "hero": [
-                    "id": "2001",
-                    "name": "R2-D2"
-                ],
-            ]
-        ))
-        
-        XCTAssertNotEqual(try graphql(
-            schema: starWarsSchema,
-            request: """
-                query HeroNameQuery {
-                    hero {
-                        id
-                        name
+                    """,
+                eventLoopGroup: eventLoopGroup
+            ).wait(),
+            GraphQLResult(
+                data: [
+                    "hero": [
+                        "id": "2001",
+                        "name": "R2-D2",
+                    ]
+                ]
+            ))
+
+        XCTAssertNotEqual(
+            try graphql(
+                schema: starWarsSchema,
+                request: """
+                    query HeroNameQuery {
+                        hero {
+                            id
+                            name
+                        }
                     }
-                }
-                """,
-            eventLoopGroup: eventLoopGroup
-        ).wait(), GraphQLResult(
-            data: [
-                "hero": [
-                    "name": "R2-D2",
-                    "id": "2001"
-                ],
-            ]
-        ))
+                    """,
+                eventLoopGroup: eventLoopGroup
+            ).wait(),
+            GraphQLResult(
+                data: [
+                    "hero": [
+                        "name": "R2-D2",
+                        "id": "2001",
+                    ]
+                ]
+            ))
     }
 }

@@ -1,9 +1,7 @@
-/**
- * A representation of source input to GraphQL. The name is optional,
- * but is mostly useful for clients who store GraphQL documents in
- * source files; for example, if the GraphQL input is in a file Foo.graphql,
- * it might be useful for name to be "Foo.graphql".
- */
+/// A representation of source input to GraphQL. The name is optional,
+/// but is mostly useful for clients who store GraphQL documents in
+/// source files; for example, if the GraphQL input is in a file Foo.graphql,
+/// it might be useful for name to be "Foo.graphql".
 public struct Source {
     public let body: String
     public let name: String
@@ -14,9 +12,8 @@ public struct Source {
     }
 }
 
-extension Source : Equatable {
+extension Source: Equatable {
     public static func == (lhs: Source, rhs: Source) -> Bool {
-        return lhs.body == rhs.body &&
-               lhs.name == rhs.name
+        return lhs.body == rhs.body && lhs.name == rhs.name
     }
 }

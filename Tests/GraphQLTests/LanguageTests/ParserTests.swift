@@ -1,7 +1,8 @@
 import XCTest
+
 @testable import GraphQL
 
-class ParserTests : XCTestCase {
+class ParserTests: XCTestCase {
     func testErrorMessages() throws {
         var source: String
 
@@ -10,10 +11,9 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssertEqual(error.message,
-                "Syntax Error GraphQL (1:2) Expected Name, found <EOF>\n\n" +
-                " 1: {\n" +
-                "     ^\n"
+            XCTAssertEqual(
+                error.message,
+                "Syntax Error GraphQL (1:2) Expected Name, found <EOF>\n\n" + " 1: {\n" + "     ^\n"
             )
 
             XCTAssertEqual(error.positions, [1])
@@ -21,14 +21,18 @@ class ParserTests : XCTestCase {
             XCTAssertEqual(error.locations[0].column, 2)
         }
 
-        XCTAssertThrowsError(try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")) { error in
+        XCTAssertThrowsError(
+            try parse(source: "{ ...MissingOn }\nfragment MissingOn Type\n")
+        ) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (2:20) Expected \"on\", found Name \"Type\""
+                )
+            )
         }
 
         XCTAssertThrowsError(try parse(source: "{ field: {} }")) { error in
@@ -36,9 +40,11 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:10) Expected Name, found {"
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:10) Expected Name, found {"
+                )
+            )
         }
 
         XCTAssertThrowsError(try parse(source: "notanoperation Foo { field }")) { error in
@@ -46,9 +52,11 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:1) Unexpected Name \"notanoperation\""
+                )
+            )
         }
 
         XCTAssertThrowsError(try parse(source: "...")) { error in
@@ -56,19 +64,25 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:1) Unexpected ..."
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:1) Unexpected ..."
+                )
+            )
         }
 
-        XCTAssertThrowsError(try parse(source: Source(body: "query", name: "MyQuery.graphql"))) { error in
+        XCTAssertThrowsError(
+            try parse(source: Source(body: "query", name: "MyQuery.graphql"))
+        ) { error in
             guard let error = error as? GraphQLError else {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error MyQuery.graphql (1:6) Expected {, found <EOF>"
+                )
+            )
         }
 
         source = "query Foo($x: Complex = { a: { b: [ $var ] } }) { field }"
@@ -78,9 +92,11 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:37) Unexpected $"
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:37) Unexpected $"
+                )
+            )
         }
 
         XCTAssertThrowsError(try parse(source: "fragment on on on { on }")) { error in
@@ -88,9 +104,11 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:10) Unexpected Name \"on\""
+                )
+            )
         }
 
         XCTAssertThrowsError(try parse(source: "{ ...on }")) { error in
@@ -98,9 +116,11 @@ class ParserTests : XCTestCase {
                 return XCTFail()
             }
 
-            XCTAssert(error.message.contains(
-                "Syntax Error GraphQL (1:9) Expected Name, found }"
-            ))
+            XCTAssert(
+                error.message.contains(
+                    "Syntax Error GraphQL (1:9) Expected Name, found }"
+                )
+            )
         }
 
     }
@@ -111,17 +131,17 @@ class ParserTests : XCTestCase {
 
     func testFieldWithArguments() throws {
         let query = """
-        {
-          stringArgField(stringArg: "Hello World")
-          intArgField(intArg: 1)
-          floatArgField(floatArg: 3.14)
-          falseArgField(boolArg: false)
-          trueArgField(boolArg: true)
-          nullArgField(value: null)
-          enumArgField(enumArg: VALUE)
-          multipleArgs(arg1: 1, arg2: false, arg3: THIRD)
-        }
-        """
+            {
+              stringArgField(stringArg: "Hello World")
+              intArgField(intArg: 1)
+              floatArgField(floatArg: 3.14)
+              falseArgField(boolArg: false)
+              trueArgField(boolArg: true)
+              nullArgField(value: null)
+              enumArgField(enumArg: VALUE)
+              multipleArgs(arg1: 1, arg2: false, arg3: THIRD)
+            }
+            """
 
         let expected = Document(
             definitions: [
@@ -219,33 +239,33 @@ class ParserTests : XCTestCase {
         XCTAssert(document == expected)
     }
 
-//      it('parses multi-byte characters', async () => {
-//    // Note: \u0A0A could be naively interpretted as two line-feed chars.
-//    expect(
-//      parse(`
-//        # This comment has a \u0A0A multi-byte character.
-//        { field(arg: "Has a \u0A0A multi-byte character.") }
-//      `)
-//    ).to.containSubset({
-//      definitions: [ {
-//        selectionSet: {
-//          selections: [ {
-//            arguments: [ {
-//              value: {
-//                kind: Kind.STRING,
-//                value: 'Has a \u0A0A multi-byte character.'
-//              }
-//            } ]
-//          } ]
-//        }
-//      } ]
-//    });
-//  });
+    //      it('parses multi-byte characters', async () => {
+    //    // Note: \u0A0A could be naively interpretted as two line-feed chars.
+    //    expect(
+    //      parse(`
+    //        # This comment has a \u0A0A multi-byte character.
+    //        { field(arg: "Has a \u0A0A multi-byte character.") }
+    //      `)
+    //    ).to.containSubset({
+    //      definitions: [ {
+    //        selectionSet: {
+    //          selections: [ {
+    //            arguments: [ {
+    //              value: {
+    //                kind: Kind.STRING,
+    //                value: 'Has a \u0A0A multi-byte character.'
+    //              }
+    //            } ]
+    //          } ]
+    //        }
+    //      } ]
+    //    });
+    //  });
 
     func testKitchenSink() throws {
-//        let path = "/Users/paulofaria/Development/Zewo/GraphQL/Tests/GraphQLTests/LanguageTests/kitchen-sink.graphql"
-//        let kitchenSink = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue)
-//        _ = try parse(source: kitchenSink as String)
+        //        let path = "/Users/paulofaria/Development/Zewo/GraphQL/Tests/GraphQLTests/LanguageTests/kitchen-sink.graphql"
+        //        let kitchenSink = try NSString(contentsOfFile: path, encoding: String.Encoding.utf8.rawValue)
+        //        _ = try parse(source: kitchenSink as String)
     }
 
     func testNonKeywordAsName() throws {
@@ -256,7 +276,7 @@ class ParserTests : XCTestCase {
             "mutation",
             "subscription",
             "true",
-            "false"
+            "false",
         ]
 
         for nonKeyword in nonKeywords {
@@ -266,52 +286,41 @@ class ParserTests : XCTestCase {
                 fragmentName = "a"
             }
 
-            _ = try parse(source: "query \(nonKeyword) {" +
-                                  "... \(fragmentName)" +
-                                  "... on \(nonKeyword) { field }" +
-                                  "}" +
-                                  "fragment \(fragmentName) on Type {" +
-                                  "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))" +
-                                  "}"
+            _ = try parse(
+                source: "query \(nonKeyword) {" + "... \(fragmentName)"
+                    + "... on \(nonKeyword) { field }" + "}" + "fragment \(fragmentName) on Type {"
+                    + "\(nonKeyword)(\(nonKeyword): $\(nonKeyword)) @\(nonKeyword)(\(nonKeyword): \(nonKeyword))"
+                    + "}"
             )
         }
     }
 
     func testAnonymousMutationOperation() throws {
-        _ = try parse(source: "mutation {" +
-                              "  mutationField" +
-                              "}"
+        _ = try parse(
+            source: "mutation {" + "  mutationField" + "}"
         )
     }
 
     func testAnonymousSubscriptionOperation() throws {
-        _ = try parse(source: "subscription {" +
-                              "  subscriptionField" +
-                              "}"
+        _ = try parse(
+            source: "subscription {" + "  subscriptionField" + "}"
         )
     }
 
     func testNamedMutationOperation() throws {
-        _ = try parse(source: "mutation Foo {" +
-                              "  mutationField" +
-                              "}"
+        _ = try parse(
+            source: "mutation Foo {" + "  mutationField" + "}"
         )
     }
 
     func testNamedSubscriptionOperation() throws {
-        _ = try parse(source: "subscription Foo {" +
-                              "  subscriptionField" +
-                              "}"
+        _ = try parse(
+            source: "subscription Foo {" + "  subscriptionField" + "}"
         )
     }
 
     func testCreateAST() throws {
-        let query = "{" +
-                    "  node(id: 4) {" +
-                    "    id," +
-                    "    name" +
-                    "  }" +
-                    "}"
+        let query = "{" + "  node(id: 4) {" + "    id," + "    name" + "  }" + "}"
 
         let expected = Document(
             definitions: [
@@ -330,7 +339,7 @@ class ParserTests : XCTestCase {
                                 selectionSet: SelectionSet(
                                     selections: [
                                         Field(name: Name(value: "id")),
-                                        Field(name: Name(value: "name"))
+                                        Field(name: Name(value: "name")),
                                     ]
                                 )
                             )
@@ -367,7 +376,7 @@ class ParserTests : XCTestCase {
         let expected: Value = ListValue(
             values: [
                 IntValue(value: "123"),
-                StringValue(value: "abc", block: false)
+                StringValue(value: "abc", block: false),
             ]
         )
 
@@ -429,11 +438,11 @@ class ParserTests : XCTestCase {
 
     func testParseDirective() throws {
         let source = #"""
-        directive @restricted(
-          """The reason for this restriction"""
-          reason: String = null
-        ) on FIELD_DEFINITION
-        """#
+            directive @restricted(
+              """The reason for this restriction"""
+              reason: String = null
+            ) on FIELD_DEFINITION
+            """#
 
         let expected = Document(definitions: [
             DirectiveDefinition(
@@ -441,7 +450,8 @@ class ParserTests : XCTestCase {
                 name: Name(value: "restricted"),
                 arguments: [
                     InputValueDefinition(
-                        description: StringValue(value: "The reason for this restriction", block: true),
+                        description: StringValue(
+                            value: "The reason for this restriction", block: true),
                         name: Name(value: "reason"),
                         type: NamedType(name: Name(value: "String")),
                         defaultValue: NullValue()

@@ -1,83 +1,85 @@
-import XCTest
 import NIO
+import XCTest
 
 @testable import GraphQL
 
-class StarWarsIntrospectionTests : XCTestCase {
+class StarWarsIntrospectionTests: XCTestCase {
     func testIntrospectionTypeQuery() throws {
         let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         defer {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        do {
-        let query = "query IntrospectionTypeQuery {" +
-                    "    __schema {" +
-                    "        types {" +
-                    "            name" +
-                    "        }" +
-                    "    }" +
-                    "}"
+        let query = """
+        query IntrospectionTypeQuery {
+            __schema {
+                types {
+                    name
+                }
+            }
+        }
+        """
 
         let expected = GraphQLResult(
             data: [
                 "__schema": [
                     "types": [
                         [
-                            "name": "Boolean",
+                            "name": "Boolean"
                         ],
                         [
-                            "name": "Character",
+                            "name": "Character"
                         ],
                         [
-                            "name": "Droid",
+                            "name": "Droid"
                         ],
                         [
-                            "name": "Episode",
+                            "name": "Episode"
                         ],
                         [
-                            "name": "Human",
+                            "name": "Human"
                         ],
                         [
-                            "name": "Query",
+                            "name": "Query"
                         ],
                         [
-                            "name": "String",
+                            "name": "String"
                         ],
                         [
-                            "name": "__Directive",
+                            "name": "__Directive"
                         ],
                         [
-                            "name": "__DirectiveLocation",
+                            "name": "__DirectiveLocation"
                         ],
                         [
-                            "name": "__EnumValue",
+                            "name": "__EnumValue"
                         ],
                         [
-                            "name": "__Field",
+                            "name": "__Field"
                         ],
                         [
-                            "name": "__InputValue",
+                            "name": "__InputValue"
                         ],
                         [
-                            "name": "__Schema",
+                            "name": "__Schema"
                         ],
                         [
-                            "name": "__Type",
+                            "name": "__Type"
                         ],
                         [
-                            "name": "__TypeKind",
+                            "name": "__TypeKind"
                         ],
-                    ],
-                ],
+                    ]
+                ]
             ]
         )
 
-            let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
-            XCTAssertEqual(result, expected)
-        } catch {
-            print(error)
-        }
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
+        XCTAssertEqual(result, expected)
     }
 
     func testIntrospectionQueryTypeQuery() throws {
@@ -86,25 +88,31 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionQueryTypeQuery {" +
-                    "    __schema {" +
-                    "        queryType {" +
-                    "            name" +
-                    "        }" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionQueryTypeQuery {
+            __schema {
+                queryType {
+                    name
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__schema": [
                     "queryType": [
-                        "name": "Query",
-                    ],
-                ],
+                        "name": "Query"
+                    ]
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -114,21 +122,27 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionDroidTypeQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionDroidTypeQuery {
+            __type(name: "Droid") {
+                name
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
-                    "name": "Droid",
-                ],
+                    "name": "Droid"
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -138,23 +152,29 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionDroidKindQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        kind" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionDroidKindQuery {
+            __type(name: "Droid") {
+                name
+                kind
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
                     "name": "Droid",
                     "kind": "OBJECT",
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -164,23 +184,29 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionCharacterKindQuery {" +
-                    "    __type(name: \"Character\") {" +
-                    "        name" +
-                    "        kind" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionCharacterKindQuery {
+            __type(name: "Character") {
+                name
+                kind
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
                     "name": "Character",
                     "kind": "INTERFACE",
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -190,19 +216,21 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionDroidFieldsQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        fields {" +
-                    "            name" +
-                    "            type {" +
-                    "                name" +
-                    "                kind" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionDroidFieldsQuery {
+            __type(name: "Droid") {
+                name
+                fields {
+                    name
+                    type {
+                        name
+                        kind
+                    }
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
@@ -251,11 +279,15 @@ class StarWarsIntrospectionTests : XCTestCase {
                             ],
                         ],
                     ],
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -265,23 +297,25 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionDroidNestedFieldsQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        fields {" +
-                    "            name" +
-                    "            type {" +
-                    "                name" +
-                    "                kind" +
-                    "                ofType {" +
-                    "                    name" +
-                    "                    kind" +
-                    "                }" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionDroidNestedFieldsQuery {
+            __type(name: "Droid") {
+                name
+                fields {
+                    name
+                    type {
+                        name
+                        kind
+                        ofType {
+                            name
+                            kind
+                        }
+                    }
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
@@ -345,11 +379,15 @@ class StarWarsIntrospectionTests : XCTestCase {
                             ],
                         ],
                     ],
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -359,29 +397,31 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionFieldArgsQuery {" +
-                    "    __schema {" +
-                    "        queryType {" +
-                    "            fields {" +
-                    "                name" +
-                    "                args {" +
-                    "                    name" +
-                    "                    description" +
-                    "                    type {" +
-                    "                        name" +
-                    "                        kind" +
-                    "                        ofType {" +
-                    "                            name" +
-                    "                            kind" +
-                    "                        }" +
-                    "                    }" +
-                    "                    defaultValue" +
-                    "                 }" +
-                    "            }" +
-                    "        }" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionFieldArgsQuery {
+            __schema {
+                queryType {
+                    fields {
+                        name
+                        args {
+                            name
+                            description
+                            type {
+                                name
+                                kind
+                                ofType {
+                                    name
+                                    kind
+                                }
+                            }
+                            defaultValue
+                        }
+                    }
+                }
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__schema": [
@@ -399,10 +439,10 @@ class StarWarsIntrospectionTests : XCTestCase {
                                             "ofType": [
                                                 "name": "String",
                                                 "kind": "SCALAR",
-                                            ]
+                                            ],
                                         ],
                                         "defaultValue": nil,
-                                        ],
+                                    ]
                                 ],
                             ],
                             [
@@ -410,14 +450,15 @@ class StarWarsIntrospectionTests : XCTestCase {
                                 "args": [
                                     [
                                         "name": "episode",
-                                        "description": "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode.",
+                                        "description":
+                                            "If omitted, returns the hero of the whole saga. If provided, returns the hero of that particular episode.",
                                         "type": [
                                             "name": "Episode",
                                             "kind": "ENUM",
-                                            "ofType": nil
+                                            "ofType": nil,
                                         ],
                                         "defaultValue": nil,
-                                    ],
+                                    ]
                                 ],
                             ],
                             [
@@ -432,19 +473,23 @@ class StarWarsIntrospectionTests : XCTestCase {
                                             "ofType": [
                                                 "name": "String",
                                                 "kind": "SCALAR",
-                                            ]
+                                            ],
                                         ],
                                         "defaultValue": nil,
-                                    ],
+                                    ]
                                 ],
                             ],
-                        ],
-                    ],
-                ],
+                        ]
+                    ]
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 
@@ -454,23 +499,29 @@ class StarWarsIntrospectionTests : XCTestCase {
             XCTAssertNoThrow(try eventLoopGroup.syncShutdownGracefully())
         }
 
-        let query = "query IntrospectionDroidDescriptionQuery {" +
-                    "    __type(name: \"Droid\") {" +
-                    "        name" +
-                    "        description" +
-                    "    }" +
-                    "}"
-
+        let query = """
+        query IntrospectionDroidDescriptionQuery {
+            __type(name: "Droid") {
+                name
+                description
+            }
+        }
+        """
+        
         let expected = GraphQLResult(
             data: [
                 "__type": [
                     "name": "Droid",
                     "description": "A mechanical creature in the Star Wars universe.",
-                ],
+                ]
             ]
         )
 
-        let result = try graphql(schema: starWarsSchema, request: query, eventLoopGroup: eventLoopGroup).wait()
+        let result = try graphql(
+            schema: starWarsSchema,
+            request: query,
+            eventLoopGroup: eventLoopGroup
+        ).wait()
         XCTAssertEqual(result, expected)
     }
 }

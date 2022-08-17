@@ -1,7 +1,5 @@
-/**
- * Given an invalid input string and a list of valid options, returns a filtered
- * list of valid options sorted based on their similarity with the input.
- */
+/// Given an invalid input string and a list of valid options, returns a filtered
+/// list of valid options sorted based on their similarity with the input.
 func suggestionList(
     input: String,
     options: [String]
@@ -25,17 +23,14 @@ func suggestionList(
     }
 }
 
-/**
- * Computes the lexical distance between strings A and B.
- *
- * The "distance" between two strings is given by counting the minimum number
- * of edits needed to transform string A into string B. An edit can be an
- * insertion, deletion, or substitution of a single character, or a swap of two
- * adjacent characters.
- *
- * This distance can be useful for detecting typos in input or sorting
- *
- */
+/// Computes the lexical distance between strings A and B.
+///
+/// The "distance" between two strings is given by counting the minimum number
+/// of edits needed to transform string A into string B. An edit can be an
+/// insertion, deletion, or substitution of a single character, or a swap of two
+/// adjacent characters.
+///
+/// This distance can be useful for detecting typos in input or sorting
 func lexicalDistance(_ a: String, _ b: String) -> Int {
     let aLength = a.utf8.count
     let bLength = b.utf8.count
@@ -56,11 +51,15 @@ func lexicalDistance(_ a: String, _ b: String) -> Int {
             let stupidCompiler = min(d[i][j - 1] + 1, d[i - 1][j - 1] + cost)
             d[i][j] = min(d[i - 1][j] + 1, stupidCompiler)
 
-            if i > 1 && j > 1 && a.charCode(at: i - 1) == b.charCode(at: j - 2) && a.charCode(at: i - 2) == b.charCode(at: j - 1) {
+            if i > 1
+                && j > 1
+                && a.charCode(at: i - 1) == b.charCode(at: j - 2)
+                && a.charCode(at: i - 2) == b.charCode(at: j - 1)
+            {
                 d[i][j] = min(d[i][j], d[i - 2][j - 2] + cost)
             }
         }
     }
-    
+
     return d[aLength][bLength]
 }

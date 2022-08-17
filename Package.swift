@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "GraphQL",
     products: [
-        .library(name: "GraphQL", targets: ["GraphQL"]),
+        .library(name: "GraphQL", targets: ["GraphQL"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-nio.git", .upToNextMajor(from: "2.10.1")),
@@ -12,7 +12,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "GraphQL", 
+            name: "GraphQL",
             dependencies: [
                 .product(name: "NIO", package: "swift-nio"),
                 .product(name: "OrderedCollections", package: "swift-collections"),

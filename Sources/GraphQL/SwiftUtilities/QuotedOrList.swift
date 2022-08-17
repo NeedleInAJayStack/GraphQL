@@ -1,6 +1,4 @@
-/**
- * Given ["A", "B", "C"] return "\"A\", \"B\", or \"C\"".
- */
+/// Given ["A", "B", "C"] return "\"A\", \"B\", or \"C\"".
 func quotedOrList(items: [String]) -> String {
     let maxLength = min(5, items.count)
     let selected = items[0..<maxLength]

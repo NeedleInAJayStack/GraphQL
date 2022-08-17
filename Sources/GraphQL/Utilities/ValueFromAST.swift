@@ -1,23 +1,24 @@
 import OrderedCollections
 
-/**
- * Produces a Map value given a GraphQL Value AST.
- *
- * A GraphQL type must be provided, which will be used to interpret different
- * GraphQL Value literals.
- *
- * | GraphQL Value        | Map Value     |
- * | -------------------- | ------------- |
- * | Input Object         | .dictionary   |
- * | List                 | .array        |
- * | Boolean              | .bool         |
- * | String               | .string       |
- * | Int                  | .int          |
- * | Float                | .float        |
- * | Enum Value           | .string       |
- *
- */
-func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: Map] = [:]) throws -> Map {
+/// Produces a Map value given a GraphQL Value AST.
+///
+/// A GraphQL type must be provided, which will be used to interpret different
+/// GraphQL Value literals.
+///
+/// | GraphQL Value        | Map Value     |
+/// | -------------------- | ------------- |
+/// | Input Object         | .dictionary   |
+/// | List                 | .array        |
+/// | Boolean              | .bool         |
+/// | String               | .string       |
+/// | Int                  | .int          |
+/// | Float                | .float        |
+/// | Enum Value           | .string       |
+func valueFromAST(
+    valueAST: Value,
+    type: GraphQLInputType,
+    variables: [String: Map] = [:]
+) throws -> Map {
     if let nonNull = type as? GraphQLNonNull {
         // Note: we're not checking that the result of valueFromAST is non-null.
         // We're assuming that this query has been validated and the value used
@@ -59,7 +60,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
             }
             return .array(values)
         }
-        
+
         // Convert solitary value into single-value array
         return .array([
             try valueFromAST(
@@ -77,7 +78,7 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
 
         let fields = objectType.fields
         let fieldASTs = objectValue.fields.keyMap({ $0.name.value })
-        
+
         var object = OrderedDictionary<String, Map>()
         for (fieldName, field) in fields {
             if let fieldAST = fieldASTs[fieldName] {
@@ -97,10 +98,10 @@ func valueFromAST(valueAST: Value, type: GraphQLInputType, variables: [String: M
         }
         return .dictionary(object)
     }
-    
+
     if let leafType = type as? GraphQLLeafType {
         return try leafType.parseLiteral(valueAST: valueAST)
     }
-    
+
     throw GraphQLError(message: "Provided type is not an input type")
 }

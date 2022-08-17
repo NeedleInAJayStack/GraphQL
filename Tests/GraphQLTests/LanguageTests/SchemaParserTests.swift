@@ -1,4 +1,5 @@
 import XCTest
+
 @testable import GraphQL
 
 func nameNode(_ name: String) -> Name {
@@ -9,7 +10,11 @@ func fieldNode(_ name: Name, _ type: Type) -> FieldDefinition {
     return FieldDefinition(name: name, type: type)
 }
 
-func fieldNodeWithDescription(_ description: StringValue? = nil, _ name: Name, _ type: Type) -> FieldDefinition {
+func fieldNodeWithDescription(
+    _ description: StringValue? = nil,
+    _ name: Name,
+    _ type: Type
+) -> FieldDefinition {
     return FieldDefinition(description: description, name: name, type: type)
 }
 
@@ -21,30 +26,44 @@ func enumValueNode(_ name: String) -> EnumValueDefinition {
     return EnumValueDefinition(name: nameNode(name))
 }
 
-func enumValueWithDescriptionNode(_ description: StringValue?, _ name: String) -> EnumValueDefinition {
+func enumValueWithDescriptionNode(
+    _ description: StringValue?,
+    _ name: String
+) -> EnumValueDefinition {
     return EnumValueDefinition(description: description, name: nameNode(name))
 }
 
-func fieldNodeWithArgs(_ name: Name, _ type: Type, _ args: [InputValueDefinition]) -> FieldDefinition {
+func fieldNodeWithArgs(
+    _ name: Name,
+    _ type: Type,
+    _ args: [InputValueDefinition]
+) -> FieldDefinition {
     return FieldDefinition(name: name, arguments: args, type: type)
 }
 
-func inputValueNode(_ name: Name, _ type: Type, _ defaultValue: Value? = nil) -> InputValueDefinition {
+func inputValueNode(
+    _ name: Name,
+    _ type: Type,
+    _ defaultValue: Value? = nil
+) -> InputValueDefinition {
     return InputValueDefinition(name: name, type: type, defaultValue: defaultValue)
 }
 
-func inputValueWithDescriptionNode(_ description: StringValue?,
-                                   _ name: Name,
-                                   _ type: Type,
-                                   _ defaultValue: Value? = nil) -> InputValueDefinition {
-    return InputValueDefinition(description: description, name: name, type: type, defaultValue: defaultValue)
+func inputValueWithDescriptionNode(
+    _ description: StringValue?,
+    _ name: Name,
+    _ type: Type,
+    _ defaultValue: Value? = nil
+) -> InputValueDefinition {
+    return InputValueDefinition(
+        description: description, name: name, type: type, defaultValue: defaultValue)
 }
 
-func namedTypeNode(_ name: String ) -> NamedType {
+func namedTypeNode(_ name: String) -> NamedType {
     return NamedType(name: nameNode(name))
 }
 
-class SchemaParserTests : XCTestCase {
+class SchemaParserTests: XCTestCase {
     func testSimpleType() throws {
         let source = "type Hello { world: String }"
 
@@ -155,7 +174,7 @@ class SchemaParserTests : XCTestCase {
                 EnumTypeDefinition(
                     name: nameNode("Hello"),
                     values: [
-                        enumValueNode("WORLD"),
+                        enumValueNode("WORLD")
                     ]
                 )
             ]
@@ -306,7 +325,7 @@ class SchemaParserTests : XCTestCase {
                                 inputValueNode(
                                     nameNode("argTwo"),
                                     typeNode("Int")
-                                )
+                                ),
                             ]
                         )
                     ]
@@ -326,7 +345,7 @@ class SchemaParserTests : XCTestCase {
                 UnionTypeDefinition(
                     name: nameNode("Hello"),
                     types: [
-                        typeNode("World"),
+                        typeNode("World")
                     ]
                 )
             ]
@@ -395,27 +414,27 @@ class SchemaParserTests : XCTestCase {
         let source = "input Hello { world(foo: Int): String }"
         XCTAssertThrowsError(try parse(source: source))
     }
-    
+
     func testSimpleSchema() throws {
         let source = "schema { query: Hello }"
         let expected = SchemaDefinition(
-                directives: [],
-                                        operationTypes: [
-                                            OperationTypeDefinition(
-                                                operation: .query,
-                                                type: namedTypeNode("Hello")
-                                            )
-                                        ]
-                                    )
+            directives: [],
+            operationTypes: [
+                OperationTypeDefinition(
+                    operation: .query,
+                    type: namedTypeNode("Hello")
+                )
+            ]
+        )
         let result = try parse(source: source)
         XCTAssert(result.definitions[0] == expected)
     }
 
     // Description tests
-    
+
     func testTypeWithDescription() throws {
         let source = #""The Hello type" type Hello { world: String }"#
-        
+
         let expected = ObjectTypeDefinition(
             description: StringValue(value: "The Hello type", block: false),
             name: nameNode("Hello"),
@@ -426,12 +445,12 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         let firstDefinition = try XCTUnwrap(result.definitions[0] as? ObjectTypeDefinition)
         XCTAssertEqual(firstDefinition, expected, "\n\(dump(firstDefinition))\n\(dump(expected))\n")
     }
-    
+
     func testTypeWitMultilinehDescription() throws {
         let source = #"""
             """
@@ -442,11 +461,12 @@ class SchemaParserTests : XCTestCase {
                 world: String
             }
             """#
-        
+
         let expected = Document(
             definitions: [
                 ObjectTypeDefinition(
-                    description: StringValue(value:"The Hello type.\nMulti-line description", block: true),
+                    description: StringValue(
+                        value: "The Hello type.\nMulti-line description", block: true),
                     name: nameNode("Hello"),
                     fields: [
                         fieldNode(
@@ -457,68 +477,72 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testDirectiveDesciption() throws {
         let source = #""directive description" directive @Test(a: String = "hello") on FIELD"#
-        
+
         let expected: Document = Document(
             definitions: [
-                DirectiveDefinition(loc: nil,
-                                    description: StringValue(value: "directive description", block: false),
-                                    name:  nameNode("Test"),
-                                    arguments: [
-                                        inputValueNode(
-                                            nameNode("a"),
-                                            typeNode("String"),
-                                            StringValue(value: "hello", block: false)
-                                        )
-                                    ],
-                                    locations: [
-                                        nameNode("FIELD")
-                                    ])
+                DirectiveDefinition(
+                    loc: nil,
+                    description: StringValue(value: "directive description", block: false),
+                    name: nameNode("Test"),
+                    arguments: [
+                        inputValueNode(
+                            nameNode("a"),
+                            typeNode("String"),
+                            StringValue(value: "hello", block: false)
+                        )
+                    ],
+                    locations: [
+                        nameNode("FIELD")
+                    ]
+                )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testDirectiveMultilineDesciption() throws {
         let source = #"""
-                """
-                directive description
-                """
-                directive @Test(a: String = "hello") on FIELD
-                """#
+            """
+            directive description
+            """
+            directive @Test(a: String = "hello") on FIELD
+            """#
         let expected: Document = Document(
             definitions: [
-                DirectiveDefinition(loc: nil,
-                                    description: StringValue(value: "directive description", block: true),
-                                    name:  nameNode("Test"),
-                                    arguments: [
-                                        inputValueNode(
-                                            nameNode("a"),
-                                            typeNode("String"),
-                                            StringValue(value: "hello", block: false)
-                                        )
-                                    ],
-                                    locations: [
-                                        nameNode("FIELD")
-                                    ])
+                DirectiveDefinition(
+                    loc: nil,
+                    description: StringValue(value: "directive description", block: true),
+                    name: nameNode("Test"),
+                    arguments: [
+                        inputValueNode(
+                            nameNode("a"),
+                            typeNode("String"),
+                            StringValue(value: "hello", block: false)
+                        )
+                    ],
+                    locations: [
+                        nameNode("FIELD")
+                    ]
+                )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testSimpleSchemaWithDescription() throws {
         let source = #""Hello Schema" schema { query: Hello } "#
-        
+
         let expected = SchemaDefinition(
             description: StringValue(value: "Hello Schema", block: false),
             directives: [],
@@ -532,10 +556,10 @@ class SchemaParserTests : XCTestCase {
         let result = try parse(source: source)
         XCTAssert(result.definitions[0] == expected)
     }
-    
+
     func testScalarWithDescription() throws {
         let source = #""Hello Scaler Test" scalar Hello"#
-        
+
         let expected = Document(
             definitions: [
                 ScalarTypeDefinition(
@@ -544,14 +568,14 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testSimpleInterfaceWithDescription() throws {
         let source = #""Hello World Interface" interface Hello { world: String } "#
-        
+
         let expected = Document(
             definitions: [
                 InterfaceTypeDefinition(
@@ -566,52 +590,52 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testSimpleUnionWithDescription() throws {
         let source = #""Hello World Union!" union Hello = World "#
-        
+
         let expected = Document(
             definitions: [
                 UnionTypeDefinition(
                     description: StringValue(value: "Hello World Union!", block: false),
                     name: nameNode("Hello"),
                     types: [
-                        typeNode("World"),
+                        typeNode("World")
                     ]
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testSingleValueEnumDescription() throws {
         let source = #""Hello World Enum..." enum Hello { WORLD } "#
-        
+
         let expected = Document(
             definitions: [
                 EnumTypeDefinition(
                     description: StringValue(value: "Hello World Enum...", block: false),
                     name: nameNode("Hello"),
                     values: [
-                        enumValueNode("WORLD"),
+                        enumValueNode("WORLD")
                     ]
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testSimpleInputObjectWithDescription() throws {
         let source = #""Hello Input Object" input Hello { world: String }"#
-        
+
         let expected = Document(
             definitions: [
                 InputObjectTypeDefinition(
@@ -626,13 +650,13 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     // Test Fields and values with optional descriptions
-    
+
     func testSingleValueEnumWithDescription() throws {
         let source = """
             enum Hello {
@@ -642,26 +666,28 @@ class SchemaParserTests : XCTestCase {
                 HELLO
             }
             """
-        
+
         let expected = Document(
             definitions: [
                 EnumTypeDefinition(
                     name: nameNode("Hello"),
                     values: [
-                        enumValueWithDescriptionNode(StringValue(value: "world description", block: false), "WORLD"),
-                        enumValueWithDescriptionNode(StringValue(value: "Hello there", block: false), "HELLO")
+                        enumValueWithDescriptionNode(
+                            StringValue(value: "world description", block: false), "WORLD"),
+                        enumValueWithDescriptionNode(
+                            StringValue(value: "Hello there", block: false), "HELLO"),
                     ]
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
     func testTypeFieldWithDescription() throws {
         let source = #"type Hello { "The world field." world: String } "#
-        
+
         let expected = Document(
             definitions: [
                 ObjectTypeDefinition(
@@ -676,7 +702,7 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
@@ -691,7 +717,7 @@ class SchemaParserTests : XCTestCase {
                 world: String
             }
             """#
-        
+
         let expected = Document(
             definitions: [
                 ObjectTypeDefinition(
@@ -706,15 +732,14 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected, "\(dump(result)) \n\n\(dump(expected))")
     }
 
-    
     func testSimpleInputObjectFieldWithDescription() throws {
         let source = #"input Hello { "World field" world: String }"#
-        
+
         let expected = Document(
             definitions: [
                 InputObjectTypeDefinition(
@@ -729,9 +754,9 @@ class SchemaParserTests : XCTestCase {
                 )
             ]
         )
-        
+
         let result = try parse(source: source)
         XCTAssert(result == expected)
     }
-    
+
 }

@@ -1,19 +1,16 @@
-/**
- * Produces a GraphQL Value AST given a Map value.
- *
- * A GraphQL type must be provided, which will be used to interpret different
- * JavaScript values.
- *
- *     | Map Value     | GraphQL Value        |
- *     | ------------- | -------------------- |
- *     | .dictionary   | Input Object         |
- *     | .array        | List                 |
- *     | .bool         | Boolean              |
- *     | .string       | String / Enum Value  |
- *     | .int          | Int                  |
- *     | .double       | Float                |
- *
- */
+/// Produces a GraphQL Value AST given a Map value.
+///
+/// A GraphQL type must be provided, which will be used to interpret different
+/// JavaScript values.
+///
+///     | Map Value     | GraphQL Value        |
+///     | ------------- | -------------------- |
+///     | .dictionary   | Input Object         |
+///     | .array        | List                 |
+///     | .bool         | Boolean              |
+///     | .string       | String / Enum Value  |
+///     | .int          | Int                  |
+///     | .double       | Float                |
 func astFromValue(
     value: Map,
     type: GraphQLInputType
@@ -68,7 +65,8 @@ func astFromValue(
         for (fieldName, field) in fields {
             let fieldType = field.type
 
-            if let fieldValue = try astFromValue(value: value[fieldName] ?? .null, type: fieldType) {
+            if let fieldValue = try astFromValue(value: value[fieldName] ?? .null, type: fieldType)
+            {
                 let field = ObjectField(name: Name(value: fieldName), value: fieldValue)
                 fieldASTs.append(field)
             }
@@ -115,13 +113,13 @@ func astFromValue(
         if type == GraphQLID && Int(string) != nil {
             return IntValue(value: string)
         }
-        
+
         // Use JSON stringify, which uses the same string encoding as GraphQL,
         // then remove the quotes.
-        struct Wrapper : Encodable {
+        struct Wrapper: Encodable {
             let map: Map
         }
-        
+
         let data = try GraphQLJSONEncoder().encode(Wrapper(map: serialized))
         guard let string = String(data: data, encoding: .utf8) else {
             throw GraphQLError(
@@ -130,6 +128,6 @@ func astFromValue(
         }
         return StringValue(value: String(string.dropFirst(8).dropLast(2)))
     }
-    
+
     throw GraphQLError(message: "Cannot convert value to AST: \(serialized)")
 }

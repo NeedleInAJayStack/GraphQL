@@ -17,12 +17,10 @@ func undefinedFieldMessage(
     return message
 }
 
-/**
- * Fields on correct type
- *
- * A GraphQL document is only valid if all fields selected are defined by the
- * parent type, or are an allowed meta field such as __typename.
- */
+/// Fields on correct type
+///
+/// A GraphQL document is only valid if all fields selected are defined by the
+/// parent type, or are an allowed meta field such as __typename.
 func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, key, parent, path, ancestors in
@@ -42,22 +40,26 @@ func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
                         )
 
                         // If there are no suggested types, then perhaps this was a typo?
-                        let suggestedFieldNames = !suggestedTypeNames.isEmpty ? [] : getSuggestedFieldNames(
-                            schema: schema,
-                            type: type,
-                            fieldName: fieldName
-                        )
+                        let suggestedFieldNames =
+                            !suggestedTypeNames.isEmpty
+                            ? []
+                            : getSuggestedFieldNames(
+                                schema: schema,
+                                type: type,
+                                fieldName: fieldName
+                            )
 
                         // Report an error, including helpful suggestions.
-                        context.report(error: GraphQLError(
-                            message: undefinedFieldMessage(
-                                fieldName: fieldName,
-                                type: type.name,
-                                suggestedTypeNames: suggestedTypeNames,
-                                suggestedFieldNames: suggestedFieldNames
-                            ),
-                            nodes: [node]
-                        ))
+                        context.report(
+                            error: GraphQLError(
+                                message: undefinedFieldMessage(
+                                    fieldName: fieldName,
+                                    type: type.name,
+                                    suggestedTypeNames: suggestedTypeNames,
+                                    suggestedFieldNames: suggestedFieldNames
+                                ),
+                                nodes: [node]
+                            ))
                     }
                 }
             }
@@ -67,12 +69,10 @@ func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     )
 }
 
-/**
- * Go through all of the implementations of type, as well as the interfaces
- * that they implement. If any of those types include the provided field,
- * suggest them, sorted by how often the type is referenced,  starting
- * with Interfaces.
- */
+/// Go through all of the implementations of type, as well as the interfaces
+/// that they implement. If any of those types include the provided field,
+/// suggest them, sorted by how often the type is referenced,  starting
+/// with Interfaces.
 func getSuggestedTypeNames(
     schema: GraphQLSchema,
     type: GraphQLOutputType,
@@ -96,7 +96,8 @@ func getSuggestedTypeNames(
                     return []
                 }
                 // This interface type defines this field.
-                interfaceUsageCount[possibleInterface.name] = (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
+                interfaceUsageCount[possibleInterface.name] =
+                    (interfaceUsageCount[possibleInterface.name] ?? 0) + 1
             }
         }
 
@@ -109,15 +110,13 @@ func getSuggestedTypeNames(
         // Suggest both interface and object types.
         return suggestedInterfaceTypes + suggestedObjectTypes
     }
-    
+
     // Otherwise, must be an Object type, which does not have possible fields.
     return []
 }
 
-/**
- * For the field name provided, determine if there are any similar field names
- * that may be the result of a typo.
- */
+/// For the field name provided, determine if there are any similar field names
+/// that may be the result of a typo.
 func getSuggestedFieldNames(
     schema: GraphQLSchema,
     type: GraphQLOutputType,

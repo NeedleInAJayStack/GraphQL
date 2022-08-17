@@ -3,7 +3,7 @@ protocol OptionalProtocol {
     var isNil: Bool { get }
 }
 
-extension Optional : OptionalProtocol {
+extension Optional: OptionalProtocol {
     var wrappedType: Any.Type {
         return Wrapped.self
     }

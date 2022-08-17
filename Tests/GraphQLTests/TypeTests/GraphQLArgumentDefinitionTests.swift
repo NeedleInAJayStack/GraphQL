@@ -1,5 +1,6 @@
-@testable import GraphQL
 import XCTest
+
+@testable import GraphQL
 
 class GraphQLArgumentDefinitionTests: XCTestCase {
 

@@ -1,17 +1,14 @@
 import Foundation
 
-/**
- * Produces a GraphQLError representing a syntax error, containing useful
- * descriptive information about the syntax error's position in the source.
- */
+/// Produces a GraphQLError representing a syntax error, containing useful
+/// descriptive information about the syntax error's position in the source.
 func syntaxError(source: Source, position: Int, description: String) -> GraphQLError {
     let location = getLocation(source: source, position: position)
 
     let error = GraphQLError(
         message:
-        "Syntax Error \(source.name) (\(location.line):\(location.column)) " +
-        description + "\n\n" +
-        highlightSourceAtLocation(source: source, location: location),
+            "Syntax Error \(source.name) (\(location.line):\(location.column)) " + description
+            + "\n\n" + highlightSourceAtLocation(source: source, location: location),
         source: source,
         positions: [position]
     )
@@ -19,10 +16,8 @@ func syntaxError(source: Source, position: Int, description: String) -> GraphQLE
     return error
 }
 
-/**
- * Render a helpful description of the location of the error in the GraphQL
- * Source document.
- */
+/// Render a helpful description of the location of the error in the GraphQL
+/// Source document.
 func highlightSourceAtLocation(source: Source, location: SourceLocation) -> String {
     let line = location.line
     let prevLineNum = (line - 1).description
@@ -52,14 +47,14 @@ func splitLines(string: String) -> [String] {
 
     var lines: [String] = []
     var location = 0
-    
+
     let nsstring = NSString(string: string)
     do {
         let regex = try NSRegularExpression(pattern: "\r\n|[\n\r]", options: [])
         for match in regex.matches(in: string, options: [], range: NSRange(0..<nsstring.length)) {
             let range = NSRange(location..<match.range.location)
             lines.append(nsstring.substring(with: range))
-            location =  match.range.location + match.range.length
+            location = match.range.location + match.range.length
         }
     } catch {
         // Let lines and location remain unchanged

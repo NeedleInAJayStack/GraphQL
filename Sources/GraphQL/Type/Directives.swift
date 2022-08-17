@@ -1,4 +1,4 @@
-public enum DirectiveLocation : String, Encodable {
+public enum DirectiveLocation: String, Encodable {
     // Operations
     case query = "QUERY"
     case mutation = "MUTATION"
@@ -21,11 +21,9 @@ public enum DirectiveLocation : String, Encodable {
     case inputFieldDefinition = "INPUT_FIELD_DEFINITION"
 }
 
-/**
- * Directives are used by the GraphQL runtime as a way of modifying execution
- * behavior. Type system creators will usually not create these directly.
- */
-public struct GraphQLDirective : Encodable {
+/// Directives are used by the GraphQL runtime as a way of modifying execution
+/// behavior. Type system creators will usually not create these directly.
+public struct GraphQLDirective: Encodable {
     public let name: String
     public let description: String
     public let locations: [DirectiveLocation]
@@ -45,14 +43,12 @@ public struct GraphQLDirective : Encodable {
     }
 }
 
-/**
- * Used to conditionally include fields or fragments.
- */
+/// Used to conditionally include fields or fragments.
 public let GraphQLIncludeDirective = try! GraphQLDirective(
     name: "include",
     description:
-    "Directs the executor to include this field or fragment only when " +
-    "the `if` argument is true.",
+        "Directs the executor to include this field or fragment only when "
+        + "the `if` argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -66,14 +62,11 @@ public let GraphQLIncludeDirective = try! GraphQLDirective(
     ]
 )
 
-/**
- * Used to conditionally skip (exclude) fields or fragments.
- */
+/// Used to conditionally skip (exclude) fields or fragments.
 public let GraphQLSkipDirective = try! GraphQLDirective(
     name: "skip",
     description:
-    "Directs the executor to skip this field or fragment when the `if` " +
-    "argument is true.",
+        "Directs the executor to skip this field or fragment when the `if` " + "argument is true.",
     locations: [
         .field,
         .fragmentSpread,
@@ -87,37 +80,31 @@ public let GraphQLSkipDirective = try! GraphQLDirective(
     ]
 )
 
-/**
- * Constant string used for default reason for a deprecation.
- */
+/// Constant string used for default reason for a deprecation.
 let defaulDeprecationReason: Map = "No longer supported"
 
-/**
- * Used to declare element of a GraphQL schema as deprecated.
- */
+/// Used to declare element of a GraphQL schema as deprecated.
 public let GraphQLDeprecatedDirective = try! GraphQLDirective(
     name: "deprecated",
     description:
-    "Marks an element of a GraphQL schema as no longer supported.",
+        "Marks an element of a GraphQL schema as no longer supported.",
     locations: [
         .fieldDefinition,
         .enumValue,
-        ],
+    ],
     args: [
         "reason": GraphQLArgument(
             type: GraphQLString,
             description:
-            "Explains why this element was deprecated, usually also including a " +
-            "suggestion for how to access supported similar data. Formatted " +
-            "in [Markdown](https://daringfireball.net/projects/markdown/).",
+                "Explains why this element was deprecated, usually also including a "
+                + "suggestion for how to access supported similar data. Formatted "
+                + "in [Markdown](https://daringfireball.net/projects/markdown/).",
             defaultValue: defaulDeprecationReason
         )
     ]
 )
 
-/**
- * The full list of specified directives.
- */
+/// The full list of specified directives.
 let specifiedDirectives: [GraphQLDirective] = [
     GraphQLIncludeDirective,
     GraphQLSkipDirective,

@@ -3,7 +3,7 @@ import OrderedCollections
 
 // MARK: MapError
 
-public enum MapError : Error {
+public enum MapError: Error {
     case incompatibleType
     case outOfBounds
     case valueNotFound
@@ -19,11 +19,11 @@ public enum Map {
     case string(String)
     case array([Map])
     case dictionary(OrderedDictionary<String, Map>)
-    
+
     public static func int(_ value: Int) -> Map {
         return .number(Number(value))
     }
-    
+
     public static func double(_ value: Double) -> Map {
         return .number(Number(value))
     }
@@ -34,62 +34,62 @@ public enum Map {
 extension Map {
     public static let encoder = MapEncoder()
 
-    public init<T : Encodable>(_ encodable: T, encoder: MapEncoder = Map.encoder) throws {
+    public init<T: Encodable>(_ encodable: T, encoder: MapEncoder = Map.encoder) throws {
         self = try encoder.encode(encodable)
     }
-    
+
     public init(_ number: Number) {
         self = .number(number)
     }
-    
+
     public init(_ bool: Bool) {
         self = .bool(bool)
     }
-    
+
     public init(_ int: Int) {
         self.init(Number(int))
     }
-    
+
     public init(_ double: Double) {
         self.init(Number(double))
     }
-    
+
     public init(_ string: String) {
         self = .string(string)
     }
-    
+
     public init(_ array: [Map]) {
         self = .array(array)
     }
-    
+
     public init(_ dictionary: OrderedDictionary<String, Map>) {
         self = .dictionary(dictionary)
     }
-    
+
     public init(_ number: Number?) {
         self = number.map({ Map($0) }) ?? .null
     }
-    
+
     public init(_ bool: Bool?) {
         self.init(bool.map({ Number($0) }))
     }
-    
+
     public init(_ int: Int?) {
         self.init(int.map({ Number($0) }))
     }
-    
+
     public init(_ double: Double?) {
         self.init(double.map({ Number($0) }))
     }
-    
+
     public init(_ string: String?) {
         self = string.map({ Map($0) }) ?? .null
     }
-    
+
     public init(_ array: [Map]?) {
         self = array.map({ Map($0) }) ?? .null
     }
-    
+
     public init(_ dictionary: OrderedDictionary<String, Map>?) {
         self = dictionary.map({ Map($0) }) ?? .null
     }
@@ -101,26 +101,27 @@ public func map(from value: Any?) throws -> Map {
     guard let value = value else {
         return .null
     }
-    
+
     if let map = value as? Map {
         return map
     }
-    
+
     if let map = try? Map(any: value) {
         return map
     }
 
-    if
-        let value = value as? OrderedDictionary<String, Any>,
-        let dictionary: OrderedDictionary<String, Map> = try? value.reduce(into: [:], { result, pair in
-            result[pair.key] = try map(from: pair.value)
-        })
+    if let value = value as? OrderedDictionary<String, Any>,
+        let dictionary = try? value.reduce(
+            into: OrderedDictionary<String, Map>(),
+            { result, pair in
+                result[pair.key] = try map(from: pair.value)
+            }
+        )
     {
         return .dictionary(dictionary)
     }
 
-    if
-        let value = value as? [Any],
+    if let value = value as? [Any],
         let array: [Map] = try? value.map({ value in
             try map(from: value)
         })
@@ -128,9 +129,7 @@ public func map(from value: Any?) throws -> Map {
         return .array(array)
     }
 
-    
-    if
-        let value = value as? Encodable,
+    if let value = value as? Encodable,
         let map = try? Map(AnyEncodable(value))
     {
         return map
@@ -173,7 +172,7 @@ extension Map {
         }
         return false
     }
-    
+
     public var isNull: Bool {
         if case .null = self {
             return true
@@ -239,7 +238,7 @@ extension Map {
     public var bool: Bool? {
         return try? boolValue()
     }
-    
+
     public var int: Int? {
         return try? intValue()
     }
@@ -272,13 +271,13 @@ extension Map {
         switch self {
         case .undefined:
             return false
-            
+
         case .null:
             return false
 
         case let .bool(value):
             return value
-            
+
         case let .number(number):
             return number.boolValue
 
@@ -305,7 +304,7 @@ extension Map {
         switch self {
         case .null:
             return 0
-            
+
         case let .number(number):
             return number.intValue
 
@@ -313,7 +312,7 @@ extension Map {
             guard let value = Int(value) else {
                 throw MapError.incompatibleType
             }
-            
+
             return value
 
         default:
@@ -329,7 +328,7 @@ extension Map {
         switch self {
         case .null:
             return 0
-            
+
         case let .number(number):
             return number.doubleValue
 
@@ -337,7 +336,7 @@ extension Map {
             guard let value = Double(value) else {
                 throw MapError.incompatibleType
             }
-            
+
             return value
 
         default:
@@ -353,13 +352,13 @@ extension Map {
         switch self {
         case .undefined:
             return "undefined"
-            
+
         case .null:
             return "null"
 
         case let .bool(value):
             return "\(value)"
-            
+
         case let .number(number):
             return number.stringValue
 
@@ -429,10 +428,10 @@ extension Map {
                 throw MapError.incompatibleType
             }
         }
-        
+
         return try get(IndexPath(indexPath)).get()
     }
-    
+
     public func get(_ indexPath: IndexPathElement...) throws -> Map {
         return try get(IndexPath(indexPath))
     }
@@ -444,7 +443,7 @@ extension Map {
             switch element {
             case .index(let index):
                 let array = try value.arrayValue()
-                
+
                 if array.indices.contains(index) {
                     value = array[index]
                 } else {
@@ -453,7 +452,7 @@ extension Map {
 
             case .key(let key):
                 let dictionary = try value.dictionaryValue()
-                
+
                 if let newValue = dictionary[key] {
                     value = newValue
                 } else {
@@ -493,7 +492,7 @@ extension Map {
                     if !array.indices.contains(index) {
                         throw MapError.outOfBounds
                     }
-                    
+
                     array[index] = value
                     self = .array(array)
                 } else {
@@ -502,10 +501,11 @@ extension Map {
             case .key(let key):
                 if case .dictionary(var dictionary) = self {
                     let newValue = value
-                    
+
                     if let existingDictionary = dictionary[key]?.dictionary,
                         let newDictionary = newValue.dictionary,
-                        merging {
+                        merging
+                    {
                         var combinedDictionary: OrderedDictionary<String, Map> = [:]
 
                         for (key, value) in existingDictionary {
@@ -520,7 +520,7 @@ extension Map {
                     } else {
                         dictionary[key] = newValue
                     }
-                    
+
                     self = .dictionary(dictionary)
                 } else {
                     throw MapError.incompatibleType
@@ -551,7 +551,10 @@ extension Map {
         indexPath.removeFirst()
 
         if indexPath.isEmpty {
-            guard case .dictionary(var dictionary) = self, case .key(let key) = first.indexPathValue else {
+            guard
+                case .dictionary(var dictionary) = self,
+                case .key(let key) = first.indexPathValue
+            else {
                 throw MapError.incompatibleType
             }
 
@@ -595,7 +598,7 @@ extension Map {
     }
 }
 
-extension String : CodingKey {
+extension String: CodingKey {
     public var stringValue: String {
         return self
     }
@@ -603,41 +606,33 @@ extension String : CodingKey {
     public init?(stringValue: String) {
         self = stringValue
     }
-    
+
     public var intValue: Int? {
         return nil
     }
-    
+
     public init?(intValue: Int) {
         return nil
     }
 }
 
-extension Map : Codable {
+extension Map: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if container.decodeNil() {
             self = .null
         }
 
         else if let bool = try? container.decode(Bool.self) {
             self = .bool(bool)
-        }
-            
-        else if let double = try? container.decode(Double.self) {
+        } else if let double = try? container.decode(Double.self) {
             self = .number(Number(double))
-        }
-            
-        else if let string = try? container.decode(String.self) {
+        } else if let string = try? container.decode(String.self) {
             self = .string(string)
-        }
-            
-        else if let array = try? container.decode([Map].self) {
+        } else if let array = try? container.decode([Map].self) {
             self = .array(array)
-        }
-        
-        else if let _ = try? container.decode([String: Map].self) {
+        } else if let _ = try? container.decode([String: Map].self) {
             // Override OrderedDictionary default (unkeyed alternating key-value)
             // Instead decode as a keyed container (like normal Dictionary) but use the order of the input
             let container = try decoder.container(keyedBy: _DictionaryCodingKey.self)
@@ -647,20 +642,17 @@ extension Map : Codable {
                 orderedDictionary[key.stringValue] = value
             }
             self = .dictionary(orderedDictionary)
-        }
-        
-        else if let dictionary = try? container.decode(OrderedDictionary<String, Map>.self) {
+        } else if let dictionary = try? container.decode(OrderedDictionary<String, Map>.self) {
             self = .dictionary(dictionary)
-        }
-            
-        else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Corrupted data")
+        } else {
+            throw DecodingError.dataCorruptedError(
+                in: container, debugDescription: "Corrupted data")
         }
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        
+
         switch self {
         case .undefined:
             throw EncodingError.invalidValue(
@@ -701,27 +693,27 @@ extension Map : Codable {
             }
         }
     }
-    
+
     /// A wrapper for dictionary keys which are Strings or Ints.
     /// This is copied from Swift core: https://github.com/apple/swift/blob/256a9c5ad96378daa03fa2d5197b4201bf16db27/stdlib/public/core/Codable.swift#L5508
     internal struct _DictionaryCodingKey: CodingKey {
-      internal let stringValue: String
-      internal let intValue: Int?
+        internal let stringValue: String
+        internal let intValue: Int?
 
-      internal init?(stringValue: String) {
-        self.stringValue = stringValue
-        self.intValue = Int(stringValue)
-      }
+        internal init?(stringValue: String) {
+            self.stringValue = stringValue
+            self.intValue = Int(stringValue)
+        }
 
-      internal init?(intValue: Int) {
-        self.stringValue = "\(intValue)"
-        self.intValue = intValue
-      }
+        internal init?(intValue: Int) {
+            self.stringValue = "\(intValue)"
+            self.intValue = intValue
+        }
     }
 }
 // MARK: Equatable
 
-extension Map : Equatable {}
+extension Map: Equatable {}
 
 public func == (lhs: Map, rhs: Map) -> Bool {
     switch (lhs, rhs) {
@@ -746,7 +738,7 @@ public func == (lhs: Map, rhs: Map) -> Bool {
 
 // MARK: Hashable
 
-extension Map : Hashable {
+extension Map: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
         case .undefined:
@@ -769,65 +761,65 @@ extension Map : Hashable {
 
 // MARK: Literal Convertibles
 
-extension Map : ExpressibleByNilLiteral {
+extension Map: ExpressibleByNilLiteral {
     public init(nilLiteral value: Void) {
         self = .null
     }
 }
 
-extension Map : ExpressibleByBooleanLiteral {
+extension Map: ExpressibleByBooleanLiteral {
     public init(booleanLiteral value: BooleanLiteralType) {
         self = .bool(value)
     }
 }
 
-extension Map : ExpressibleByIntegerLiteral {
+extension Map: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: IntegerLiteralType) {
         self = .number(Number(value))
     }
 }
 
-extension Map : ExpressibleByFloatLiteral {
+extension Map: ExpressibleByFloatLiteral {
     public init(floatLiteral value: FloatLiteralType) {
         self = .number(Number(value))
     }
 }
 
-extension Map : ExpressibleByStringLiteral {
+extension Map: ExpressibleByStringLiteral {
     public init(unicodeScalarLiteral value: String) {
         self = .string(value)
     }
-    
+
     public init(extendedGraphemeClusterLiteral value: String) {
         self = .string(value)
     }
-    
+
     public init(stringLiteral value: StringLiteralType) {
         self = .string(value)
     }
 }
 
-extension Map : ExpressibleByArrayLiteral {
+extension Map: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Map...) {
         self = .array(elements)
     }
 }
 
-extension Map : ExpressibleByDictionaryLiteral {
+extension Map: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, Map)...) {
         var dictionary = OrderedDictionary<String, Map>(minimumCapacity: elements.count)
-        
+
         for (key, value) in elements {
             dictionary[key] = value
         }
-        
+
         self = .dictionary(dictionary)
     }
 }
 
 // MARK: CustomStringConvertible
 
-extension Map : CustomStringConvertible {
+extension Map: CustomStringConvertible {
     public var description: String {
         return self.description(debug: false)
     }
@@ -835,12 +827,11 @@ extension Map : CustomStringConvertible {
 
 // MARK: CustomDebugStringConvertible
 
-extension Map:CustomDebugStringConvertible {
-    public var debugDescription:String {
+extension Map: CustomDebugStringConvertible {
+    public var debugDescription: String {
         return self.description(debug: true)
     }
 }
-
 
 // MARK: Generic Description
 extension Map {
@@ -857,7 +848,7 @@ extension Map {
             "\u{2028}": "\\u2028",
             "\u{2029}": "\\u2029",
 
-            "\r\n": "\\r\\n"
+            "\r\n": "\\r\\n",
         ]
 
         func escape(_ source: String) -> String {
@@ -901,7 +892,7 @@ extension Map {
                 indentLevel += 1
             }
 
-            for index in 0 ..< array.count {
+            for index in 0..<array.count {
                 if debug {
                     string += "\n"
                     string += indent()
@@ -933,12 +924,12 @@ extension Map {
             if debug {
                 indentLevel += 1
             }
-            
+
             let filtered = dictionary.filter({ item in
                 !item.value.isUndefined
             })
 
-            for (key, value) in filtered.sorted(by: {$0.0 < $1.0}) {
+            for (key, value) in filtered.sorted(by: { $0.0 < $1.0 }) {
                 if debug {
                     string += "\n"
                     string += indent()
@@ -965,11 +956,11 @@ extension Map {
                 return string + "}"
             }
         }
-        
+
         func indent() -> String {
             return String(repeating: "    ", count: indentLevel)
         }
-        
+
         return serialize(map: self)
     }
 }

@@ -7,40 +7,40 @@ public struct Number {
         case double
         case unknown
     }
-    
+
     private var _number: NSNumber
     public var storageType: StorageType
-    
+
     public var number: NSNumber {
         mutating get {
             if !isKnownUniquelyReferenced(&_number) {
                 _number = _number.copy() as! NSNumber
             }
-            
+
             return _number
         }
-        
+
         set {
             _number = newValue
         }
     }
-    
+
     public init(_ value: NSNumber) {
         self._number = value
         self.storageType = .unknown
     }
-    
+
     public init(_ value: Bool) {
         self._number = NSNumber(value: value)
         self.storageType = .bool
     }
-    
+
     @available(OSX 10.5, *)
     public init(_ value: Int) {
         self._number = NSNumber(value: value)
         self.storageType = .int
     }
-    
+
     @available(OSX 10.5, *)
     public init(_ value: UInt) {
         self._number = NSNumber(value: value)
@@ -100,17 +100,17 @@ public struct Number {
     public var boolValue: Bool {
         return self._number.boolValue
     }
-    
+
     @available(OSX 10.5, *)
     public var intValue: Int {
         return self._number.intValue
     }
-    
+
     @available(OSX 10.5, *)
     public var uintValue: UInt {
         return self._number.uintValue
     }
-    
+
     public var int8Value: Int8 {
         return self._number.int8Value
     }
@@ -156,21 +156,21 @@ public struct Number {
     }
 }
 
-extension Number : Hashable {}
+extension Number: Hashable {}
 
-extension Number : Equatable {
+extension Number: Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         return lhs._number == rhs._number
     }
 }
 
-extension Number : Comparable {
+extension Number: Comparable {
     public static func < (lhs: Number, rhs: Number) -> Bool {
         return lhs._number.compare(rhs._number) == .orderedAscending
     }
 }
 
-extension Number : ExpressibleByBooleanLiteral {
+extension Number: ExpressibleByBooleanLiteral {
     /// Create an instance initialized to `value`.
     public init(booleanLiteral value: Bool) {
         self._number = NSNumber(value: value)
@@ -178,7 +178,7 @@ extension Number : ExpressibleByBooleanLiteral {
     }
 }
 
-extension Number : ExpressibleByIntegerLiteral {
+extension Number: ExpressibleByIntegerLiteral {
     /// Create an instance initialized to `value`.
     public init(integerLiteral value: Int) {
         self._number = NSNumber(value: value)
@@ -186,7 +186,7 @@ extension Number : ExpressibleByIntegerLiteral {
     }
 }
 
-extension Number : ExpressibleByFloatLiteral {
+extension Number: ExpressibleByFloatLiteral {
     /// Create an instance initialized to `value`.
     public init(floatLiteral value: Double) {
         self._number = NSNumber(value: value)
@@ -194,7 +194,7 @@ extension Number : ExpressibleByFloatLiteral {
     }
 }
 
-extension Number : CustomStringConvertible {
+extension Number: CustomStringConvertible {
     public var description: String {
         return self._number.description
     }

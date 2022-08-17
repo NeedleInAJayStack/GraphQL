@@ -1,10 +1,8 @@
-/**
- * TypeInfo is a utility class which, given a GraphQL schema, can keep track
- * of the current field and type definitions at any point in a GraphQL document
- * AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
- */
+/// TypeInfo is a utility class which, given a GraphQL schema, can keep track
+/// of the current field and type definitions at any point in a GraphQL document
+/// AST during a recursive descent by calling `enter(node: node)` and `leave(node: node)`.
 final class TypeInfo {
-    let schema: GraphQLSchema;
+    let schema: GraphQLSchema
     var typeStack: [GraphQLOutputType?]
     var parentTypeStack: [GraphQLCompositeType?]
     var inputTypeStack: [GraphQLInputType?]
@@ -123,7 +121,7 @@ final class TypeInfo {
 
             inputTypeStack.append(argType)
 
-        case is ListType: // could be ListValue
+        case is ListType:  // could be ListValue
             if let listType = getNullableType(type: self.inputType) as? GraphQLList {
                 inputTypeStack.append(listType.ofType as? GraphQLInputType)
             }
@@ -172,12 +170,14 @@ final class TypeInfo {
     }
 }
 
-/**
- * Not exactly the same as the executor's definition of getFieldDef, in this
- * statically evaluated environment we do not always have an Object type,
- * and need to handle Interface and Union types.
- */
-func getFieldDef(schema: GraphQLSchema, parentType: GraphQLType, fieldAST: Field) -> GraphQLFieldDefinition? {
+/// Not exactly the same as the executor's definition of getFieldDef, in this
+/// statically evaluated environment we do not always have an Object type,
+/// and need to handle Interface and Union types.
+func getFieldDef(
+    schema: GraphQLSchema,
+    parentType: GraphQLType,
+    fieldAST: Field
+) -> GraphQLFieldDefinition? {
     let name = fieldAST.name.value
 
     if let parentType = parentType as? GraphQLNamedType {
@@ -190,16 +190,17 @@ func getFieldDef(schema: GraphQLSchema, parentType: GraphQLType, fieldAST: Field
         }
     }
 
-    if name == TypeNameMetaFieldDef.name && (parentType is GraphQLObjectType ||
-                                             parentType is GraphQLInterfaceType ||
-                                             parentType is GraphQLUnionType) {
+    if name == TypeNameMetaFieldDef.name
+        && (parentType is GraphQLObjectType || parentType is GraphQLInterfaceType
+            || parentType is GraphQLUnionType)
+    {
         return TypeNameMetaFieldDef
     }
 
     if let parentType = parentType as? GraphQLObjectType {
         return parentType.fields[name]
     }
-    
+
     if let parentType = parentType as? GraphQLInterfaceType {
         return parentType.fields[name]
     }

@@ -46,39 +46,37 @@ let QueryDocumentKeys: [Kind: [String]] = [
     .directiveDefinition: ["name", "arguments", "locations"],
 ]
 
-/**
- * visit() will walk through an AST using a depth first traversal, calling
- * the visitor's enter function at each node in the traversal, and calling the
- * leave function after visiting that node and all of its child nodes.
- *
- * By returning different values from the enter and leave functions, the
- * behavior of the visitor can be altered, including skipping over a sub-tree of
- * the AST (by returning `.skip`), editing the AST by returning a value or nil
- * to remove the value, or to stop the whole traversal by returning `.break`.
- *
- * When using visit() to edit an AST, the original AST will not be modified, and
- * a new version of the AST with the changes applied will be returned from the
- * visit function.
- *
- *     let editedAST = visit(ast, Visitor(
- *         enter: { node, key, parent, path, ancestors in
- *             return
- *                 .continue: no action
- *                 .skip: skip visiting this node
- *                 .break: stop visiting altogether
- *                 .node(nil): delete this node
- *                 .node(newNode): replace this node with the returned value
- *         },
- *         leave: { node, key, parent, path, ancestors in
- *             return
- *                 .continue: no action
- *                 .skip: no action
- *                 .break: stop visiting altogether
- *                 .node(nil): delete this node
- *                 .node(newNode): replace this node with the returned value
- *         }
- *     ))
- */
+/// visit() will walk through an AST using a depth first traversal, calling
+/// the visitor's enter function at each node in the traversal, and calling the
+/// leave function after visiting that node and all of its child nodes.
+///
+/// By returning different values from the enter and leave functions, the
+/// behavior of the visitor can be altered, including skipping over a sub-tree of
+/// the AST (by returning `.skip`), editing the AST by returning a value or nil
+/// to remove the value, or to stop the whole traversal by returning `.break`.
+///
+/// When using visit() to edit an AST, the original AST will not be modified, and
+/// a new version of the AST with the changes applied will be returned from the
+/// visit function.
+///
+///     let editedAST = visit(ast, Visitor(
+///         enter: { node, key, parent, path, ancestors in
+///             return
+///                 .continue: no action
+///                 .skip: skip visiting this node
+///                 .break: stop visiting altogether
+///                 .node(nil): delete this node
+///                 .node(newNode): replace this node with the returned value
+///         },
+///         leave: { node, key, parent, path, ancestors in
+///             return
+///                 .continue: no action
+///                 .skip: no action
+///                 .break: stop visiting altogether
+///                 .node(nil): delete this node
+///                 .node(newNode): replace this node with the returned value
+///         }
+///     ))
 @discardableResult
 func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node {
     let visitorKeys = keyMap.isEmpty ? QueryDocumentKeys : keyMap
@@ -127,33 +125,33 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             parent = ancestors.popLast()
 
             if isEdited {
-//                if inArray {
-//                    node = node.slice()
-//                } else {
-//                    let clone = node
-//                    node = clone
-//                }
-//
-//                var editOffset = 0
-//
-//                for ii in 0..<edits.count {
-//                    var editKey = edits[ii].key
-//                    let editValue = edits[ii].node
-//
-//                    if inArray {
-//                        editKey -= editOffset
-//                    }
-//
-//                    if inArray && editValue == nil {
-//                        node.splice(editKey, 1)
-//                        editOffset += 1
-//                    } else {
-//
-//                    if let node = node, case .node(let n) = node {
-//                        n.set(value: editValue, key: editKey.keyValue!)
-//                    }
-//                    }
-//                }
+                //                if inArray {
+                //                    node = node.slice()
+                //                } else {
+                //                    let clone = node
+                //                    node = clone
+                //                }
+                //
+                //                var editOffset = 0
+                //
+                //                for ii in 0..<edits.count {
+                //                    var editKey = edits[ii].key
+                //                    let editValue = edits[ii].node
+                //
+                //                    if inArray {
+                //                        editKey -= editOffset
+                //                    }
+                //
+                //                    if inArray && editValue == nil {
+                //                        node.splice(editKey, 1)
+                //                        editOffset += 1
+                //                    } else {
+                //
+                //                    if let node = node, case .node(let n) = node {
+                //                        n.set(value: editValue, key: editKey.keyValue!)
+                //                    }
+                //                    }
+                //                }
             }
 
             index = stack!.index
@@ -205,9 +203,9 @@ func visit(root: Node, visitor: Visitor, keyMap: [Kind: [String]] = [:]) -> Node
             }
         }
 
-//        if case .continue = result, isEdited {
-//            edits.append((key!, node!))
-//        }
+        //        if case .continue = result, isEdited {
+        //            edits.append((key!, node!))
+        //        }
 
         if !isLeaving {
             stack = Stack(index: index, keys: keys, edits: edits, inArray: inArray, prev: stack)
@@ -245,7 +243,12 @@ final class Stack {
     let inArray: Bool
     let prev: Stack?
 
-    init(index: Int, keys: [IndexPathElement], edits: [(key: IndexPathElement, node: Node)], inArray: Bool, prev: Stack?) {
+    init(
+        index: Int,
+        keys: [IndexPathElement],
+        edits: [(key: IndexPathElement, node: Node)],
+        inArray: Bool, prev: Stack?
+    ) {
         self.index = index
         self.keys = keys
         self.edits = edits
@@ -254,12 +257,10 @@ final class Stack {
     }
 }
 
-/**
- * Creates a new visitor instance which delegates to many visitors to run in
- * parallel. Each visitor will be visited for each node before moving on.
- *
- * If a prior visitor edits a node, no following visitors will see that node.
- */
+/// Creates a new visitor instance which delegates to many visitors to run in
+/// parallel. Each visitor will be visited for each node before moving on.
+///
+/// If a prior visitor edits a node, no following visitors will see that node.
 func visitInParallel(visitors: [Visitor]) -> Visitor {
     var skipping: [Node?] = [Node?](repeating: nil, count: visitors.count)
 
@@ -278,7 +279,7 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     if case .skip = result {
                         skipping[i] = node
                     } else if case .break = result {
-//                        skipping[i] = BREAK
+                        //                        skipping[i] = BREAK
                     } else if case .node = result {
                         return result
                     }
@@ -299,13 +300,13 @@ func visitInParallel(visitors: [Visitor]) -> Visitor {
                     )
 
                     if case .break = result {
-//                        skipping[i] = BREAK
+                        //                        skipping[i] = BREAK
                     } else if case .node = result {
                         return result
                     }
-                } //else if skipping[i] == node {
-//                    skipping[i] = nil
-//                }
+                }  //else if skipping[i] == node {
+                //                    skipping[i] = nil
+                //                }
             }
 
             return .continue
@@ -331,7 +332,13 @@ public enum VisitResult {
 /// relevant functions to be called during the visitor's traversal.
 public struct Visitor {
     /// A visitor is comprised of visit functions, which are called on each node during the visitor's traversal.
-    public typealias Visit = (Node, IndexPathElement?, NodeResult?, [IndexPathElement], [NodeResult]) -> VisitResult
+    public typealias Visit = (
+        Node,
+        IndexPathElement?,
+        NodeResult?,
+        [IndexPathElement],
+        [NodeResult]
+    ) -> VisitResult
     private let enter: Visit
     private let leave: Visit
 
@@ -340,24 +347,39 @@ public struct Visitor {
         self.leave = leave
     }
 
-    public func enter(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func enter(
+        node: Node,
+        key: IndexPathElement?,
+        parent: NodeResult?,
+        path: [IndexPathElement],
+        ancestors: [NodeResult]
+    ) -> VisitResult {
         return enter(node, key, parent, path, ancestors)
     }
 
-    public func leave(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+    public func leave(
+        node: Node,
+        key: IndexPathElement?,
+        parent: NodeResult?,
+        path: [IndexPathElement],
+        ancestors: [NodeResult]
+    ) -> VisitResult {
         return leave(node, key, parent, path, ancestors)
     }
 }
 
-public func ignore(node: Node, key: IndexPathElement?, parent: NodeResult?, path: [IndexPathElement], ancestors: [NodeResult]) -> VisitResult {
+public func ignore(
+    node: Node,
+    key: IndexPathElement?,
+    parent: NodeResult?,
+    path: [IndexPathElement],
+    ancestors: [NodeResult]
+) -> VisitResult {
     return .continue
 }
 
-
-/**
- * Creates a new visitor instance which maintains a provided TypeInfo instance
- * along with visiting visitor.
- */
+/// Creates a new visitor instance which maintains a provided TypeInfo instance
+/// along with visiting visitor.
 func visitWithTypeInfo(typeInfo: TypeInfo, visitor: Visitor) -> Visitor {
     return Visitor(
         enter: { node, key, parent, path, ancestors in

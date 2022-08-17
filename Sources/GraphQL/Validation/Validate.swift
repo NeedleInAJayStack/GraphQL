@@ -16,19 +16,17 @@ public func validate(
     return validate(instrumentation: instrumentation, schema: schema, ast: ast, rules: [])
 }
 
-/**
- * Implements the "Validation" section of the spec.
- *
- * Validation runs synchronously, returning an array of encountered errors, or
- * an empty array if no errors were encountered and the document is valid.
- *
- * A list of specific validation rules may be provided. If not provided, the
- * default list of rules defined by the GraphQL specification will be used.
- *
- * Each validation rules is a function which returns a visitor
- * (see the language/visitor API). Visitor methods are expected to return
- * GraphQLErrors, or Arrays of GraphQLErrors when invalid.
- */
+/// Implements the "Validation" section of the spec.
+///
+/// Validation runs synchronously, returning an array of encountered errors, or
+/// an empty array if no errors were encountered and the document is valid.
+///
+/// A list of specific validation rules may be provided. If not provided, the
+/// default list of rules defined by the GraphQL specification will be used.
+///
+/// Each validation rules is a function which returns a visitor
+/// (see the language/visitor API). Visitor methods are expected to return
+/// GraphQLErrors, or Arrays of GraphQLErrors when invalid.
 public func validate(
     instrumentation: Instrumentation = NoOpInstrumentation,
     schema: GraphQLSchema,
@@ -39,16 +37,22 @@ public func validate(
     let typeInfo = TypeInfo(schema: schema)
     let rules = rules.isEmpty ? specifiedRules : rules
     let errors = visit(usingRules: rules, schema: schema, typeInfo: typeInfo, documentAST: ast)
-    instrumentation.queryValidation(processId: processId(), threadId: threadId(), started: started, finished: instrumentation.now, schema: schema, document: ast, errors: errors)
+    instrumentation.queryValidation(
+        processId: processId(),
+        threadId: threadId(),
+        started: started,
+        finished: instrumentation.now,
+        schema: schema,
+        document: ast,
+        errors: errors
+    )
     return errors
 }
 
-/**
- * This uses a specialized visitor which runs multiple visitors in parallel,
- * while maintaining the visitor skip and break API.
- *
- * @internal
- */
+/// This uses a specialized visitor which runs multiple visitors in parallel,
+/// while maintaining the visitor skip and break API.
+///
+/// @internal
 func visit(
     usingRules rules: [(ValidationContext) -> Visitor],
     schema: GraphQLSchema,
@@ -58,7 +62,13 @@ func visit(
     let context = ValidationContext(schema: schema, ast: documentAST, typeInfo: typeInfo)
     let visitors = rules.map({ rule in rule(context) })
     // Visit the whole document with each instance of all provided rules.
-    visit(root: documentAST, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: visitInParallel(visitors: visitors)))
+    visit(
+        root: documentAST,
+        visitor: visitWithTypeInfo(
+            typeInfo: typeInfo,
+            visitor: visitInParallel(visitors: visitors)
+        )
+    )
     return context.errors
 }
 
@@ -76,7 +86,7 @@ public enum HasSelectionSet {
     }
 }
 
-extension HasSelectionSet : Hashable {
+extension HasSelectionSet: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch self {
         case .operation(let operation):
@@ -100,11 +110,9 @@ extension HasSelectionSet : Hashable {
 
 public typealias VariableUsage = (node: Variable, type: GraphQLInputType?)
 
-/**
- * An instance of this class is passed as the "this" context to all validators,
- * allowing access to commonly useful contextual information from within a
- * validation rule.
- */
+/// An instance of this class is passed as the "this" context to all validators,
+/// allowing access to commonly useful contextual information from within a
+/// validation rule.
 public final class ValidationContext {
     public let schema: GraphQLSchema
     let ast: Document
@@ -180,11 +188,13 @@ public final class ValidationContext {
         return spreads
     }
 
-    public func getRecursivelyReferencedFragments(operation: OperationDefinition) -> [FragmentDefinition] {
+    public func getRecursivelyReferencedFragments(
+        operation: OperationDefinition
+    ) -> [FragmentDefinition] {
         if let fragments = recursivelyReferencedFragments[operation] {
             return fragments
         }
-        
+
         var fragments = [FragmentDefinition]()
         var collectedNames: [String: Bool] = [:]
         var nodesToVisit: [SelectionSet] = [operation.selectionSet]
@@ -203,7 +213,7 @@ public final class ValidationContext {
                 }
             }
         }
-        
+
         recursivelyReferencedFragments[operation] = fragments
         return fragments
     }
@@ -212,21 +222,27 @@ public final class ValidationContext {
         if let usages = variableUsages[node] {
             return usages
         }
-        
+
         var usages = [VariableUsage]()
         let typeInfo = TypeInfo(schema: schema)
 
-        visit(root: node.node, visitor: visitWithTypeInfo(typeInfo: typeInfo, visitor: Visitor(enter: { node, _, _, _, _ in
-            if node is VariableDefinition {
-                return .skip
-            }
+        visit(
+            root: node.node,
+            visitor: visitWithTypeInfo(
+                typeInfo: typeInfo,
+                visitor: Visitor(enter: { node, _, _, _, _ in
+                    if node is VariableDefinition {
+                        return .skip
+                    }
 
-            if let variable = node as? Variable {
-                usages.append(VariableUsage(node: variable, type: typeInfo.inputType))
-            }
+                    if let variable = node as? Variable {
+                        usages.append(VariableUsage(node: variable, type: typeInfo.inputType))
+                    }
 
-            return .continue
-        })))
+                    return .continue
+                })
+            )
+        )
 
         variableUsages[node] = usages
         return usages
@@ -236,7 +252,7 @@ public final class ValidationContext {
         if let usages = recursiveVariableUsages[operation] {
             return usages
         }
-        
+
         var usages = getVariableUsages(node: .operation(operation))
         let fragments = getRecursivelyReferencedFragments(operation: operation)
 

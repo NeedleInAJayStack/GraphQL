@@ -1,6 +1,4 @@
-/**
- * Provided two types, return true if the types are equal (invariant).
- */
+/// Provided two types, return true if the types are equal (invariant).
 func isEqualType(_ typeA: GraphQLType, _ typeB: GraphQLType) -> Bool {
     // Equivalent types are equal.
     if typeA == typeB {
@@ -66,10 +64,8 @@ func == (lhs: GraphQLType, rhs: GraphQLType) -> Bool {
     return false
 }
 
-/**
- * Provided a type and a super type, return true if the first type is either
- * equal or a subset of the second super type (covariant).
- */
+/// Provided a type and a super type, return true if the first type is either
+/// equal or a subset of the second super type (covariant).
 func isTypeSubTypeOf(
     _ schema: GraphQLSchema,
     _ maybeSubType: GraphQLType,
@@ -105,19 +101,17 @@ func isTypeSubTypeOf(
     }
 
     // If superType type is an abstract type, check if it is super type of maybeSubType.
-    if
-        let superType = superType as? GraphQLAbstractType,
+    if let superType = superType as? GraphQLAbstractType,
         let maybeSubType = maybeSubType as? GraphQLObjectType,
         schema.isSubType(
             abstractType: superType,
             maybeSubType: maybeSubType
-       )
+        )
     {
         return true
     }
-    
-    if
-        let superType = superType as? GraphQLAbstractType,
+
+    if let superType = superType as? GraphQLAbstractType,
         let maybeSubType = maybeSubType as? GraphQLInterfaceType,
         schema.isSubType(
             abstractType: superType,
@@ -131,15 +125,13 @@ func isTypeSubTypeOf(
     return false
 }
 
-/**
- * Provided two composite types, determine if they "overlap". Two composite
- * types overlap when the Sets of possible concrete types for each intersect.
- *
- * This is often used to determine if a fragment of a given type could possibly
- * be visited in a context of another type.
- *
- * This function is commutative.
- */
+/// Provided two composite types, determine if they "overlap". Two composite
+/// types overlap when the Sets of possible concrete types for each intersect.
+///
+/// This is often used to determine if a fragment of a given type could possibly
+/// be visited in a context of another type.
+///
+/// This function is commutative.
 func doTypesOverlap(
     schema: GraphQLSchema,
     typeA: GraphQLCompositeType,
@@ -171,8 +163,7 @@ func doTypesOverlap(
         }
     }
 
-    if
-        let typeA = typeA as? GraphQLObjectType,
+    if let typeA = typeA as? GraphQLObjectType,
         let typeB = typeB as? GraphQLAbstractType
     {
         // Determine if the former type is a possible concrete type of the latter.
@@ -181,7 +172,7 @@ func doTypesOverlap(
             maybeSubType: typeA
         )
     }
-    
+
     // Otherwise the types do not overlap.
     return false
 }

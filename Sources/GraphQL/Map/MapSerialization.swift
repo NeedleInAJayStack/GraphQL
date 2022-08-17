@@ -26,22 +26,25 @@ public struct MapSerialization {
             return .array(array)
         case let dictionary as NSDictionary:
             // Extract from an unordered dictionary, using NSDictionary extraction order
-            let orderedDictionary: OrderedDictionary<String, Map> = try dictionary.reduce(into: [:]) { (dictionary, pair) in
+            let orderedDictionary: OrderedDictionary<String, Map> = try dictionary.reduce(into: [:])
+            { (dictionary, pair) in
                 guard let key = pair.key as? String else {
                     throw EncodingError.invalidValue(
                         dictionary,
                         EncodingError.Context(
                             codingPath: [],
-                            debugDescription: "Dictionary key was not string: \(pair.key) in \(dictionary)"
+                            debugDescription:
+                                "Dictionary key was not string: \(pair.key) in \(dictionary)"
                         )
                     )
                 }
-                guard let value = pair.value as? NSObject else{
+                guard let value = pair.value as? NSObject else {
                     throw EncodingError.invalidValue(
                         dictionary,
                         EncodingError.Context(
                             codingPath: [],
-                            debugDescription: "Dictionary value was not an object: \(key) in \(dictionary)"
+                            debugDescription:
+                                "Dictionary value was not an object: \(key) in \(dictionary)"
                         )
                     )
                 }
@@ -58,7 +61,7 @@ public struct MapSerialization {
             )
         }
     }
-    
+
     static func object(with map: Map) throws -> NSObject {
         switch map {
         case .undefined:
@@ -66,7 +69,8 @@ public struct MapSerialization {
                 self,
                 EncodingError.Context(
                     codingPath: [],
-                    debugDescription: "undefined values should have been excluded from serialization"
+                    debugDescription:
+                        "undefined values should have been excluded from serialization"
                 )
             )
         case .null:
