@@ -131,6 +131,12 @@ Those contributing to this package are expected to follow the [Swift Code of Con
 [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/), and the
 [SSWG Technical Best Practices](https://github.com/swift-server/sswg/blob/main/process/incubation.md#technical-best-practices).
 
+This repo uses [swift-format](https://github.com/apple/swift-format), and includes lint checks to enforce these formatting standards. To format your code manually, run:
+
+```bash
+swift-format --in-place --recursive ./Sources/ ./Tests/ Package.swift
+```  
+
 Most of this repo mirrors the structure of
 (the canonical GraphQL implementation written in Javascript/Typescript)[https://github.com/graphql/graphql-js]. If there is any feature
 missing, looking at the original code and "translating" it to Swift works, most of the time. For example:
