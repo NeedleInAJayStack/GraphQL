@@ -199,4 +199,35 @@ class MapTests: XCTestCase {
             """
         )
     }
+    
+    // Ensure that encoding and then decoding gives the same result
+    func testMapEncodeDecode() throws {
+        let map: Map = .dictionary([
+            "null": .null,
+            "bool": true,
+            "int": 3,
+            "float": 2.4,
+            "array": [
+                .null,
+                true,
+                3,
+                2.4
+            ],
+            "dictionary": [
+                "null": .null,
+                "bool": true,
+                "int": 3,
+                "float": 2.4,
+            ]
+        ])
+        
+        let encoder = MapEncoder()
+        let decoder = MapDecoder()
+        
+        let data = try decoder.decode(Map.self, from: map)
+        XCTAssertEqual(map.description, data.description)
+        
+        let newMap = try encoder.encode(data)
+        XCTAssertEqual(map.description, newMap.description)
+    }
 }
