@@ -255,6 +255,10 @@ open class MapEncoder {
 
         return try MapSerialization.map(with: topLevel)
     }
+    
+    public func encode(_ value: Map) throws -> Map {
+        return value
+    }
 }
 
 // MARK: - _MapEncoder
@@ -1270,6 +1274,10 @@ open class MapDecoder {
     /// - throws: `DecodingError.dataCorrupted` if values requested from the payload are corrupted, or if the given data is not valid Map.
     /// - throws: An error if any value throws an error during decoding.
     open func decode<T: Decodable>(_ type: T.Type, from map: Map) throws -> T {
+        if type == Map.self {
+            return map as! T
+        }
+        
         let topLevel = try MapSerialization.object(with: map)
         let decoder = _MapDecoder(referencing: topLevel, options: options)
 
