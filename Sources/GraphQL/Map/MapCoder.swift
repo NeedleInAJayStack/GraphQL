@@ -963,6 +963,8 @@ private extension _MapEncoder {
             } else if type == URL.self {
                 // Encode URLs as single strings.
                 return box((value as! URL).absoluteString)
+            } else if type == Int.self {
+                return NSNumber(value: value as! Int)
             } else if type == Decimal.self {
                 // MapSerialization can consume NSDecimalNumber values.
                 return NSDecimalNumber(decimal: value as! Decimal)
@@ -980,6 +982,8 @@ private extension _MapEncoder {
             } else if type == URL.self || type == NSURL.self {
                 // Encode URLs as single strings.
                 return box((value as! URL).absoluteString)
+            } else if type == Int.self {
+                return NSNumber(value: value as! Int)
             } else if type == Decimal.self {
                 // MapSerialization can consume NSDecimalNumber values.
                 return NSDecimalNumber(decimal: value as! Decimal)
@@ -3194,6 +3198,9 @@ private extension _MapDecoder {
                 return decimal
             } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
                 return try unbox(value, as: stringKeyedDictType)
+            } else if type == Int.self {
+                guard let int = try unbox(value, as: Int.self) else { return nil }
+                return int
             } else {
                 storage.push(container: value)
                 defer { self.storage.popContainer() }
@@ -3221,6 +3228,8 @@ private extension _MapDecoder {
                 return try unbox(value, as: Decimal.self)
             } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
                 return try unbox(value, as: stringKeyedDictType)
+            } else if type == Int.self || type == NSNumber.self {
+                return try unbox(value, as: Int.self)
             } else {
                 storage.push(container: value)
                 defer { self.storage.popContainer() }
