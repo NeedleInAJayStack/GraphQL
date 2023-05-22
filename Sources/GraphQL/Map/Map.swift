@@ -626,12 +626,12 @@ extension Map: Codable {
             self = .null
         } else if let bool = try? container.decode(Bool.self) {
             self = .bool(bool)
+        } else if let int = try? container.decode(Int.self) {
+            self = .number(Number(int))
         } else if let double = try? container.decode(Double.self) {
             self = .number(Number(double))
         } else if let string = try? container.decode(String.self) {
             self = .string(string)
-        } else if let array = try? container.decode([Map].self) {
-            self = .array(array)
         } else if let _ = try? container.decode([String: Map].self) {
             // Override OrderedDictionary default (unkeyed alternating key-value)
             // Instead decode as a keyed container (like normal Dictionary) but use the order of the
@@ -645,6 +645,8 @@ extension Map: Codable {
             self = .dictionary(orderedDictionary)
         } else if let dictionary = try? container.decode(OrderedDictionary<String, Map>.self) {
             self = .dictionary(dictionary)
+        } else if let array = try? container.decode([Map].self) {
+            self = .array(array)
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
@@ -676,26 +678,27 @@ extension Map: Codable {
         case let .array(array):
             try container.encode(array)
         case let .dictionary(dictionary):
-            // Override OrderedDictionary default (unkeyed alternating key-value)
-            // Instead decode as a keyed container (like normal Dictionary) in the order of our
-            // OrderedDictionary
-            // Note that `JSONEncoder` will ignore this because it uses `Dictionary` underneath.
-            // Instead, use `GraphQLJSONEncoder`.
-            var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
-            for (key, value) in dictionary {
-                if !value.isUndefined {
-                    guard let codingKey = _DictionaryCodingKey(stringValue: key) else {
-                        throw EncodingError.invalidValue(
-                            self,
-                            EncodingError.Context(
-                                codingPath: [],
-                                debugDescription: "codingKey not found for dictionary key: \(key)"
-                            )
-                        )
-                    }
-                    try container.encode(value, forKey: codingKey)
-                }
-            }
+            try container.encode(dictionary)
+//            // Override OrderedDictionary default (unkeyed alternating key-value)
+//            // Instead decode as a keyed container (like normal Dictionary) in the order of our
+//            // OrderedDictionary
+//            // Note that `JSONEncoder` will ignore this because it uses `Dictionary` underneath.
+//            // Instead, use `GraphQLJSONEncoder`.
+//            var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
+//            for (key, value) in dictionary {
+//                if !value.isUndefined {
+//                    guard let codingKey = _DictionaryCodingKey(stringValue: key) else {
+//                        throw EncodingError.invalidValue(
+//                            self,
+//                            EncodingError.Context(
+//                                codingPath: [],
+//                                debugDescription: "codingKey not found for dictionary key: \(key)"
+//                            )
+//                        )
+//                    }
+//                    try container.encode(value, forKey: codingKey)
+//                }
+//            }
         }
     }
 
@@ -936,7 +939,7 @@ public extension Map {
                 !item.value.isUndefined
             }
 
-            for (key, value) in filtered.sorted(by: { $0.0 < $1.0 }) {
+            for (key, value) in filtered { //.sorted(by: { $0.0 < $1.0 }) {
                 if debug {
                     string += "\n"
                     string += indent()

@@ -972,9 +972,10 @@ private extension _MapEncoder {
             } else if type == Decimal.self {
                 // MapSerialization can consume NSDecimalNumber values.
                 return NSDecimalNumber(decimal: value as! Decimal)
-            } else if value is _MapStringDictionaryEncodableMarker {
-                return try box((value as Any) as! OrderedDictionary<String, Encodable>)
             }
+//            } else if value is _MapStringDictionaryEncodableMarker {
+//                return try box((value as Any) as! OrderedDictionary<String, Encodable>)
+//            }
 
         #else
             if type == Date.self || type == NSDate.self {
@@ -991,9 +992,10 @@ private extension _MapEncoder {
             } else if type == Decimal.self {
                 // MapSerialization can consume NSDecimalNumber values.
                 return NSDecimalNumber(decimal: value as! Decimal)
-            } else if value is _MapStringDictionaryEncodableMarker {
-                return try box((value as Any) as! OrderedDictionary<String, Encodable>)
             }
+//            } else if value is _MapStringDictionaryEncodableMarker {
+//                return try box((value as Any) as! OrderedDictionary<String, Encodable>)
+//            }
         #endif
 
         // The value should request a container from the _MapEncoder.
@@ -3204,11 +3206,11 @@ private extension _MapDecoder {
             } else if type == Decimal.self {
                 guard let decimal = try unbox(value, as: Decimal.self) else { return nil }
                 return decimal
-            } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
-                return try unbox(value, as: stringKeyedDictType)
             } else if type == Int.self {
                 guard let int = try unbox(value, as: Int.self) else { return nil }
                 return int
+//            } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
+//                return try unbox(value, as: stringKeyedDictType)
             } else {
                 storage.push(container: value)
                 defer { self.storage.popContainer() }
@@ -3234,10 +3236,10 @@ private extension _MapDecoder {
                 return url
             } else if type == Decimal.self || type == NSDecimalNumber.self {
                 return try unbox(value, as: Decimal.self)
-            } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
-                return try unbox(value, as: stringKeyedDictType)
             } else if type == Int.self || type == NSNumber.self {
                 return try unbox(value, as: Int.self)
+//            } else if let stringKeyedDictType = type as? _MapStringDictionaryDecodableMarker.Type {
+//                return try unbox(value, as: stringKeyedDictType)
             } else {
                 storage.push(container: value)
                 defer { self.storage.popContainer() }
