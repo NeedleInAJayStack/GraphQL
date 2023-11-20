@@ -80,26 +80,26 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
     }
 
     func testInvalidWhenFieldNotDefined() throws {
-        let errors = try assertInvalid(
-            errorCount: 1,
-            query: "fragment fieldNotDefined on Dog { meowVolume }"
-        )
-
-        try assertValidationError(
-            error: errors.first, line: 1, column: 35,
-            message: "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+        try assertInvalid(
+            "fragment fieldNotDefined on Dog { meowVolume }",
+            withErrors: [
+                .init(
+                    locations: [(line: 1, column: 35)],
+                    message: "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+                )
+            ]
         )
     }
 
     func testInvalidWhenDeepFieldNotDefined() throws {
-        let errors = try assertInvalid(
-            errorCount: 1,
-            query: "fragment deepFieldNotDefined on Dog { unknown_field { deeper_unknown_field }}"
-        )
-
-        try assertValidationError(
-            error: errors.first, line: 1, column: 39,
-            message: "Cannot query field \"unknown_field\" on type \"Dog\"."
+        try assertInvalid(
+            "fragment deepFieldNotDefined on Dog { unknown_field { deeper_unknown_field }}",
+            withErrors: [
+                .init(
+                    locations: [(line: 1, column: 39)],
+                    message: "Cannot query field \"unknown_field\" on type \"Dog\"."
+                )
+            ]
         )
     }
 

@@ -6,17 +6,6 @@ class ValidationTestCase: XCTestCase {
 
     var rule: Rule!
 
-    private func validate(
-        body request: String,
-        schema: GraphQLSchema = ValidationExampleSchema
-    ) throws -> [GraphQLError] {
-        return try GraphQL.validate(
-            schema: schema,
-            ast: parse(source: Source(body: request, name: "GraphQL request")),
-            rules: [rule]
-        )
-    }
-
     func assertValid(
         _ query: String,
         schema: GraphQLSchema = ValidationExampleSchema,
@@ -32,7 +21,7 @@ class ValidationTestCase: XCTestCase {
             line: line
         )
     }
-
+    
     @discardableResult func assertInvalid(
         errorCount: Int,
         query: String,
@@ -49,6 +38,32 @@ class ValidationTestCase: XCTestCase {
             line: line
         )
         return errors
+    }
+
+    func assertInvalid(
+        _ query: String,
+        withErrors expectedErrors: [ErrorInfo],
+        schema: GraphQLSchema = ValidationExampleSchema,
+        file: StaticString = #file,
+        line: UInt = #line
+    ) throws {
+        let errors = try validate(body: query, schema: schema)
+        XCTAssertEqual(
+            errors.count,
+            expectedErrors.count,
+            "Expecting to fail validation with at least 1 error",
+            file: file,
+            line: line
+        )
+        for (error, expectedError) in zip(errors, expectedErrors) {
+            try assertValidationError(
+                error: error,
+                locations: expectedError.locations,
+                message: expectedError.message,
+                testFile: file,
+                testLine: line
+            )
+        }
     }
 
     func assertValidationError(
@@ -128,4 +143,21 @@ class ValidationTestCase: XCTestCase {
         let errorPath = error.path.elements.map { $0.description }.joined(separator: " ")
         XCTAssertEqual(errorPath, path, "Unexpected error path", file: testFile, line: testLine)
     }
+    
+    private func validate(
+        body request: String,
+        schema: GraphQLSchema = ValidationExampleSchema
+    ) throws -> [GraphQLError] {
+        return try GraphQL.validate(
+            schema: schema,
+            ast: parse(source: Source(body: request, name: "GraphQL request")),
+            rules: [rule]
+        )
+    }
+}
+
+struct ErrorInfo {
+    let locations: [(line: Int, column: Int)]
+    let path: String = ""
+    let message: String
 }
