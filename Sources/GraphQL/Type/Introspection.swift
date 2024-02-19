@@ -363,6 +363,8 @@ let __InputValue = try! GraphQLObjectType(
                 return .string(defaultValue.description)
             }
         ),
+        "isDeprecated": GraphQLField(type: GraphQLNonNull(GraphQLBoolean)),
+        "deprecationReason": GraphQLField(type: GraphQLString),
     ]
 )
 
