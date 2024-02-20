@@ -24,7 +24,9 @@ func undefinedFieldMessage(
 func FieldsOnCorrectTypeRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Field {
+            if node.kind == .field {
+                let node = node as! Field
+//            if let node = node as? Field {
                 if let type = context.parentType {
                     let fieldDef = context.fieldDef
                     if fieldDef == nil {

@@ -28,7 +28,9 @@ func KnownTypeNamesRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let type = node as? NamedType {
+            if node.kind == .namedType {
+                let type = node as! NamedType
+//            if let type = node as? NamedType {
                 let typeName = type.name.value
                 if !typeNames.contains(typeName) {
                     // TODO: Add SDL support

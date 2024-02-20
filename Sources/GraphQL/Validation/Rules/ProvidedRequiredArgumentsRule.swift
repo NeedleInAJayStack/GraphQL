@@ -37,7 +37,9 @@ func ProvidedRequiredArgumentsRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         leave: { node, _, _, _, _ in
-            if let fieldNode = node as? Field {
+            if node.kind == .field {
+                let fieldNode = node as! Field
+//            if let fieldNode = node as? Field {
                 guard let fieldDef = context.fieldDef else {
                     return .continue
                 }
@@ -53,8 +55,10 @@ func ProvidedRequiredArgumentsRule(context: ValidationContext) -> Visitor {
                     }
                 }
             }
-
-            if let directiveNode = node as? Directive {
+            
+            if node.kind == .directive {
+                let directiveNode = node as! Directive
+//            if let directiveNode = node as? Directive {
                 let directiveName = directiveNode.name.value
 
                 if let requiredArgs = requiredArgsMap[directiveName] {

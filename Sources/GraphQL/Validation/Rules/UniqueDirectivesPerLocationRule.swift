@@ -35,16 +35,21 @@ func UniqueDirectivesPerLocationRule(context: ValidationContext) -> Visitor {
             if
                 let directiveNodeResult = node.get(key: "directives"),
                 case let .array(directiveNodes) = directiveNodeResult,
+                
                 let directives = directiveNodes as? [Directive]
             {
                 var seenDirectives = [String: Directive]()
                 if node.kind == .schemaDefinition || node.kind == .schemaExtensionDefinition {
                     seenDirectives = schemaDirectives
-                } else if let node = node as? TypeDefinition {
+//                } else if let node = node as? TypeDefinition {
+                } else if [Kind.scalarTypeDefinition, .objectTypeDefinition, .interfaceTypeDefinition, .unionTypeDefinition, .enumTypeDefinition, .inputObjectTypeDefinition].contains(node.kind) {
+                    let node = node as! TypeDefinition
                     let typeName = node.name.value
                     seenDirectives = typeDirectivesMap[typeName] ?? [:]
                     typeDirectivesMap[typeName] = seenDirectives
-                } else if let node = node as? TypeExtensionDefinition {
+//                } else if let node = node as? TypeExtensionDefinition {
+                } else if node.kind == .typeExtensionDefinition {
+                    let node = node as! TypeExtensionDefinition
                     let typeName = node.definition.name.value
                     seenDirectives = typeDirectivesMap[typeName] ?? [:]
                     typeDirectivesMap[typeName] = seenDirectives

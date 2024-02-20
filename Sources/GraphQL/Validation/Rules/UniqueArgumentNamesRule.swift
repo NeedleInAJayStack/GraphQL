@@ -11,9 +11,13 @@ func UniqueArgumentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
             let argumentNodes: [Argument]
-            if let field = node as? Field {
+            if node.kind == .field {
+                let field = node as! Field
+//            if let field = node as? Field {
                 argumentNodes = field.arguments
-            } else if let directive = node as? Directive {
+            } else if node.kind == .directive {
+                let directive = node as! Directive
+//            } else if let directive = node as? Directive {
                 argumentNodes = directive.arguments
             } else {
                 return .continue

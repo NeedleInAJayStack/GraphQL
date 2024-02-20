@@ -10,9 +10,12 @@ func NoUnusedVariablesRule(context: ValidationContext) -> Visitor {
             .continue
         },
         leave: { node, _, _, _, _ -> VisitResult in
-            guard let operation = node as? OperationDefinition else {
+            guard node.kind == .operationDefinition else {
+//            guard let operation = node as? OperationDefinition else {
                 return .continue
             }
+            
+            let operation = node as! OperationDefinition
 
             let usages = context.getRecursiveVariableUsages(operation: operation)
             let variableNameUsed = Set(usages.map { usage in

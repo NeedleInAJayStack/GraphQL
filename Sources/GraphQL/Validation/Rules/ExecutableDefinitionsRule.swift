@@ -28,7 +28,9 @@ func ExecutableDefinitionsRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let node = node as? Document {
+            if node.kind == .document {
+                let node = node as! Document
+//            if let node = node as? Document {
                 for definition in node.definitions {
                     if !isExecutable(definition) {
                         var defName = "schema"

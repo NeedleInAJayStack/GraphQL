@@ -13,12 +13,15 @@ func UniqueInputFieldNamesRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if node is ObjectValue {
+            if node.kind == .objectValue {
+//            if node is ObjectValue {
                 knownNameStack.append(knownNames)
                 knownNames = [:]
                 return .continue
             }
-            if let objectField = node as? ObjectField {
+            if node.kind == .objectField {
+                let objectField = node as! ObjectField
+//            if let objectField = node as? ObjectField {
                 let fieldName = objectField.name.value
                 if let knownName = knownNames[fieldName] {
                     context.report(
@@ -35,7 +38,8 @@ func UniqueInputFieldNamesRule(context: ValidationContext) -> Visitor {
             return .continue
         },
         leave: { node, _, _, _, _ in
-            if node is ObjectValue {
+            if node.kind == .objectValue {
+//            if node is ObjectValue {
                 let prevKnownNames = knownNameStack.popLast()
                 knownNames = prevKnownNames ?? [:]
             }

@@ -66,10 +66,13 @@ func NoFragmentCyclesRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if node is OperationDefinition {
+            if node.kind == .operationDefinition {
+//            if node is OperationDefinition {
                 return .skip
             }
-            if let fragmentDefinition = node as? FragmentDefinition {
+            if node.kind == .fragmentDefinition {
+                let fragmentDefinition = node as! FragmentDefinition
+//            if let fragmentDefinition = node as? FragmentDefinition {
                 detectCycleRecursive(fragment: fragmentDefinition)
                 return .skip
             }

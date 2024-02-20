@@ -12,15 +12,20 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, _ in
-            if node is OperationDefinition {
+            if node.kind == .operationDefinition {
+//            if node is OperationDefinition {
                 variableDefinitions = [:]
                 return .continue
             }
-            if let variableDefinition = node as? VariableDefinition {
+            if node.kind == .variableDefinition {
+                let variableDefinition = node as! VariableDefinition
+//            if let variableDefinition = node as? VariableDefinition {
                 variableDefinitions[variableDefinition.variable.name.value] = variableDefinition
                 return .continue
             }
-            if let list = node as? ListValue {
+            if node.kind == .listValue {
+                let list = node as! ListValue
+//            if let list = node as? ListValue {
                 guard let type = getNullableType(type: context.parentInputType) else {
                     return .continue
                 }
@@ -30,7 +35,9 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 }
                 return .continue
             }
-            if let object = node as? ObjectValue {
+            if node.kind == .objectValue {
+                let object = node as! ObjectValue
+//            if let object = node as? ObjectValue {
                 let type = getNamedType(type: context.inputType)
                 guard let type = type as? GraphQLInputObjectType else {
                     isValidValueNode(context, object)
@@ -55,7 +62,9 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 // TODO: Add oneOf support
                 return .continue
             }
-            if let field = node as? ObjectField {
+            if node.kind == .objectField {
+                let field = node as! ObjectField
+//            if let field = node as? ObjectField {
                 let parentType = getNamedType(type: context.parentInputType)
                 if
                     context.inputType == nil,
@@ -76,7 +85,9 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 }
                 return .continue
             }
-            if let null = node as? NullValue {
+            if node.kind == .nullValue {
+                let null = node as! NullValue
+//            if let null = node as? NullValue {
                 let type = context.inputType
                 if let type = type as? GraphQLNonNull {
                     context.report(
@@ -89,23 +100,33 @@ func ValuesOfCorrectTypeRule(context: ValidationContext) -> Visitor {
                 }
                 return .continue
             }
-            if let node = node as? EnumValue {
+            if node.kind == .enumValue {
+                let node = node as! EnumValue
+//            if let node = node as? EnumValue {
                 isValidValueNode(context, node)
                 return .continue
             }
-            if let node = node as? IntValue {
+            if node.kind == .intValue {
+                let node = node as! IntValue
+//            if let node = node as? IntValue {
                 isValidValueNode(context, node)
                 return .continue
             }
-            if let node = node as? FloatValue {
+            if node.kind == .floatValue {
+                let node = node as! FloatValue
+//            if let node = node as? FloatValue {
                 isValidValueNode(context, node)
                 return .continue
             }
-            if let node = node as? StringValue {
+            if node.kind == .stringValue {
+                let node = node as! StringValue
+//            if let node = node as? StringValue {
                 isValidValueNode(context, node)
                 return .continue
             }
-            if let node = node as? BooleanValue {
+            if node.kind == .booleanValue {
+                let node = node as! BooleanValue
+//            if let node = node as? BooleanValue {
                 isValidValueNode(context, node)
                 return .continue
             }

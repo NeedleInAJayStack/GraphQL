@@ -10,7 +10,9 @@ func UniqueFragmentNamesRule(context: ValidationContext) -> Visitor {
     var knownFragmentNames = [String: Name]()
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let fragment = node as? FragmentDefinition {
+            if node.kind == .fragmentDefinition {
+                let fragment = node as! FragmentDefinition
+//            if let fragment = node as? FragmentDefinition {
                 let fragmentName = fragment.name
                 if let knownFragmentName = knownFragmentNames[fragmentName.value] {
                     context.report(

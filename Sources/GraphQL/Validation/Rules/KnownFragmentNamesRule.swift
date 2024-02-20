@@ -11,7 +11,9 @@ import Foundation
 func KnownFragmentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let fragmentReference = node as? FragmentSpread {
+            if node.kind == .fragmentSpread {
+                let fragmentReference = node as! FragmentSpread
+//            if let fragmentReference = node as? FragmentSpread {
                 let fragmentName = fragmentReference.name.value
                 let fragmentDefinition = context.getFragment(name: fragmentName)
 

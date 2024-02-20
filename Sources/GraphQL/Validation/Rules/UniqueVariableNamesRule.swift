@@ -7,7 +7,9 @@
 func UniqueVariableNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
-            if let operation = node as? OperationDefinition {
+            if node.kind == .operationDefinition {
+                let operation = node as! OperationDefinition
+//            if let operation = node as? OperationDefinition {
                 let variableDefinitions = operation.variableDefinitions
 
                 let seenVariableDefinitions = Dictionary(grouping: variableDefinitions) { node in

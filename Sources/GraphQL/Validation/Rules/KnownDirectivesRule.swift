@@ -25,7 +25,9 @@ func KnownDirectivesRule(context: ValidationContext) -> Visitor {
 
     return Visitor(
         enter: { node, _, _, _, ancestors in
-            if let node = node as? Directive {
+            if node.kind == .directive {
+                let node = node as! Directive
+//            if let node = node as? Directive {
                 let name = node.name.value
                 let locations = locationsMap[name]
 

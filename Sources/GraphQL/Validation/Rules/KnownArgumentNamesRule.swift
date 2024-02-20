@@ -20,9 +20,13 @@ func KnownArgumentNamesRule(context: ValidationContext) -> Visitor {
     return Visitor(
         enter: { node, _, _, _, _ in
             if
-                let node = node as? Argument, context.argument == nil, let field = context.fieldDef,
+                node.kind == .argument,
+//                let node = node as? Argument,
+                context.argument == nil,
+                let field = context.fieldDef,
                 let type = context.parentType
             {
+                let node = node as! Argument
                 let argumentName = node.name.value
                 let suggestedArgumentNames = getSuggestedArgumentNames(
                     schema: context.schema,
