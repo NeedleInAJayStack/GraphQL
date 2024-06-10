@@ -49,6 +49,14 @@ public struct GraphQLDirective: Encodable {
         self.args = try defineArgumentMap(args: args)
         self.isRepeatable = isRepeatable
     }
+
+    func argConfigMap() -> GraphQLArgumentConfigMap {
+        var argConfigs: GraphQLArgumentConfigMap = [:]
+        for argDef in args {
+            argConfigs[argDef.name] = argDef.toArg()
+        }
+        return argConfigs
+    }
 }
 
 /**
@@ -158,3 +166,9 @@ let specifiedDirectives: [GraphQLDirective] = [
     GraphQLSpecifiedByDirective,
     GraphQLOneOfDirective,
 ]
+
+func isSpecifiedDirective(_ directive: GraphQLDirective) -> Bool {
+    return specifiedDirectives.contains { specifiedDirective in
+        specifiedDirective.name == directive.name
+    }
+}
