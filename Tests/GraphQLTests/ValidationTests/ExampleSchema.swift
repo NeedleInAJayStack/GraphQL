@@ -24,16 +24,24 @@ let ValidationExampleBeing = try! GraphQLInterfaceType(
 //  mother: Mammal
 //  father: Mammal
 // }
-let ValidationExampleMammal = try! GraphQLInterfaceType(
-    name: "Mammal",
-    fields: [
-        "mother": GraphQLField(type: GraphQLTypeReference("Mammal")),
-        "father": GraphQLField(type: GraphQLTypeReference("Mammal")),
-    ],
-    resolveType: { _, _, _ in
-        "Unknown"
+let ValidationExampleMammal = {
+    let Mammal = try! GraphQLInterfaceType(
+        name: "Mammal",
+        resolveType: { _, _, _ in
+            "Unknown"
+        }
+    )
+    Mammal.fields = { [weak Mammal] in
+        guard let Mammal = Mammal else {
+            return [:]
+        }
+        return [
+            "mother": GraphQLField(type: Mammal),
+            "father": GraphQLField(type: Mammal),
+        ]
     }
-)
+    return Mammal
+}()
 
 // interface Pet implements Being {
 //  name(surname: Boolean): String
