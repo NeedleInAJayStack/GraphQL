@@ -438,24 +438,6 @@ func defineInterfaces(
     hasTypeOf: Bool,
     interfaces: [GraphQLInterfaceType]
 ) throws -> [GraphQLInterfaceType] {
-    guard !interfaces.isEmpty else {
-        return []
-    }
-
-    if !hasTypeOf {
-        for interface in interfaces {
-            guard interface.resolveType != nil else {
-                throw GraphQLError(
-                    message:
-                    "Interface Type \(interface.name) does not provide a \"resolveType\" " +
-                        "function and implementing Type \(name) does not provide a " +
-                        "\"isTypeOf\" function. There is no way to resolve this implementing " +
-                        "type during execution."
-                )
-            }
-        }
-    }
-
     return interfaces
 }
 
