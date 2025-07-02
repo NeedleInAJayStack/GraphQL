@@ -1,0 +1,42 @@
+Replacing maxim-lobanov/setup-xcode@v1 with swift-actions/setup-swift@v2: Hangs on ExtendSchemaTests.testDoNotModifyBuiltInTypesAnDirectives
+Testing in non-parallel: Hangs on ExtendSchemaTests.testDoNotModifyBuiltInTypesAnDirectives
+Running testDoNotModifyBuiltInTypesAnDirectives as a main target: Works (no hang)
+Test with only testDoNotModifyBuiltInTypesAnDirectives: Works (no hang)
+Test with only testExtendsDifferentTypesMultipleTimes: Works (no hang)
+Test with filter for testExtends* (14 funcs): Works (no hang)
+Test with filter for all ExtendSchemaTests: Works (no hang)
+Test with no filter: Hangs on ExtendSchemaTests.testDoNotModifyBuiltInTypesAnDirectives
+Test in parallel with filter for all ExtendSchemaTests: Works (no hang)
+Test skipping all ExtendSchemaTests: Hangs upon build, never entering tests
+Test skipping all ExtendSchemaTests with Swift 6.1: Hangs upon build, never entering tests
+Test skipping all ExtendSchemaTests with Swift 5.10: Hangs upon build, never entering tests
+Test skipping all BuildASTSchemaTests: Hangs upon build, never entering tests
+Test in parallel skipping all ExtendSchemaTests: Hangs on ExecutableDefinitionsRuleTests/testWithSchemaDefinition
+Test skipping all SubscriptionTests: Hangs on ExtendSchemaTests testDoNotModifyBuiltInTypesAnDirectives
+Test with filter for ExtendSchemaTests and SubscriptionTests: Works
+
+
+Problematic tests:
+- testDoNotModifyBuiltInTypesAnDirectives
+- testExtendsDifferentTypesMultipleTimes
+- testExtendsEnumsWithDeprecatedValues
+- testExtendsInterfacesByAddingNewFields
+- ...
+
+
+Other test suites that run before `ExtendSchemaTests`:
+- BuildASTSchemaTests
+- ConcatASTTests
+- DidYouMeanTests
+- ExecutableDefinitionsRuleTests
+
+
+Conclusions:
+- Hangs are caused by ExtendSchemaTests interacting with another suite
+- There are only 2 async tests called before ExtendSchemaTests.testDoNotModifyBuiltInTypesAnDirectives:
+  - BuildASTSchemaTests.testCanUseBuiltSchemaForLimitedExecution
+  - ExtendSchemaTests.testCanBeUsedForLimitedExecution
+  Perhaps the issue occurs on the second async function called from a particular test suite?
+- When running `FieldExecutionStrategyTests` locally, the system will often hang.
+
+Resolution: Using the global DispatchQueue to perform the waits in `FieldExecutionStrategyTests` was causing hangs.
