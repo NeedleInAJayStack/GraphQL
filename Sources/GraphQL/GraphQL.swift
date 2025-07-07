@@ -223,7 +223,7 @@ public func graphqlSubscribe(
     context: Any = (),
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
+) async throws -> Result<AsyncThrowingMapSequence<AnyAsyncSequence, GraphQLResult>, GraphQLErrors> {
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(source: source)
     let validationErrors = validate(

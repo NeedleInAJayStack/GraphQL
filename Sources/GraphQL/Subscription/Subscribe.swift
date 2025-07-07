@@ -24,7 +24,7 @@ func subscribe(
     context: Any,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
+) async throws -> Result<AsyncThrowingMapSequence<AnyAsyncSequence, GraphQLResult>, GraphQLErrors> {
     let sourceResult = try await createSourceEventStream(
         queryStrategy: queryStrategy,
         mutationStrategy: mutationStrategy,
@@ -38,43 +38,19 @@ func subscribe(
     )
 
     return sourceResult.map { sourceStream in
-        // We must create a new AsyncSequence because AsyncSequence.map requires a concrete type
-        // (which we cannot know),
-        // and we need the result to be a concrete type.
-        let subscriptionStream = AsyncThrowingStream<GraphQLResult, Error> { continuation in
-            let task = Task {
-                do {
-                    for try await eventPayload in sourceStream {
-                        // For each payload yielded from a subscription, map it over the normal
-                        // GraphQL `execute` function, with `payload` as the rootValue.
-                        // This implements the "MapSourceToResponseEvent" algorithm described in
-                        // the GraphQL specification. The `execute` function provides the
-                        // "ExecuteSubscriptionEvent" algorithm, as it is nearly identical to the
-                        // "ExecuteQuery" algorithm, for which `execute` is also used.
-                        let newEvent = try await execute(
-                            queryStrategy: queryStrategy,
-                            mutationStrategy: mutationStrategy,
-                            subscriptionStrategy: subscriptionStrategy,
-                            schema: schema,
-                            documentAST: documentAST,
-                            rootValue: eventPayload,
-                            context: context,
-                            variableValues: variableValues,
-                            operationName: operationName
-                        )
-                        continuation.yield(newEvent)
-                    }
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-
-            continuation.onTermination = { @Sendable reason in
-                task.cancel()
-            }
+        sourceStream.map { eventPayload in
+            try await execute(
+                queryStrategy: queryStrategy,
+                mutationStrategy: mutationStrategy,
+                subscriptionStrategy: subscriptionStrategy,
+                schema: schema,
+                documentAST: documentAST,
+                rootValue: eventPayload,
+                context: context,
+                variableValues: variableValues,
+                operationName: operationName
+            )
         }
-        return subscriptionStream
     }
 }
 
@@ -111,7 +87,7 @@ func createSourceEventStream(
     context: Any,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> Result<any AsyncSequence, GraphQLErrors> {
+) async throws -> Result<AnyAsyncSequence, GraphQLErrors> {
     // If a valid context cannot be created due to incorrect arguments,
     // this will throw an error.
     let exeContext = try buildExecutionContext(
@@ -141,7 +117,7 @@ func createSourceEventStream(
 
 func executeSubscription(
     context: ExecutionContext
-) async throws -> Result<any AsyncSequence, GraphQLErrors> {
+) async throws -> Result<AnyAsyncSequence, GraphQLErrors> {
     // Get the first node
     let type = try getOperationRootType(schema: context.schema, operation: context.operation)
     var inputFields: OrderedDictionary<String, [Field]> = [:]
@@ -235,7 +211,7 @@ func executeSubscription(
     } else if let error = resolved as? GraphQLError {
         return .failure(.init([error]))
     } else if let stream = resolved as? any AsyncSequence {
-        return .success(stream)
+        return .success(AnyAsyncSequence(stream))
     } else if resolved == nil {
         return .failure(.init([
             GraphQLError(message: "Resolved subscription was nil"),
