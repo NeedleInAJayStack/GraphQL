@@ -208,7 +208,7 @@ public func graphqlSubscribe(
     variableValues: [String: Map] = [:],
     operationName: String? = nil,
     validationRules: [@Sendable (ValidationContext) -> Visitor] = specifiedRules
-) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
+) async throws -> Result<AnyAsyncThrowingSequence<GraphQLResult, Error>, GraphQLErrors> {
     let source = Source(body: request, name: "GraphQL Subscription request")
     let documentAST = try parse(source: source)
     let validationErrors = validate(
@@ -218,7 +218,7 @@ public func graphqlSubscribe(
     )
 
     guard validationErrors.isEmpty else {
-        return .failure(.init(validationErrors))
+        return .failure(GraphQLErrors.init(validationErrors))
     }
 
     return try await subscribe(
@@ -228,5 +228,74 @@ public func graphqlSubscribe(
         context: context,
         variableValues: variableValues,
         operationName: operationName
-    )
+    ).map {
+        .init(wrapping: $0)
+    }
+}
+
+/// Wraps an AsyncSequence such that it can be more easily stored
+/// together with other AsyncSequences that share the same type
+/// of Element.
+public struct AnyAsyncSequence<Element>: AsyncSequence, Sendable {
+    private let _makeAsyncIterator: @Sendable () -> AsyncIterator
+
+    public init<S: AsyncSequence & Sendable>(wrapping sequence: S)
+        where S.Element == Element, S.Failure == Never
+    {
+        self._makeAsyncIterator = {
+            AsyncIterator(wrapping: sequence.makeAsyncIterator())
+        }
+    }
+
+    public func makeAsyncIterator() -> AsyncIterator {
+        self._makeAsyncIterator()
+    }
+
+    public struct AsyncIterator: AsyncIteratorProtocol {
+        private var iterator: any AsyncIteratorProtocol<Element, Never>
+
+        init(wrapping iterator: any AsyncIteratorProtocol<Element, Never>) {
+            self.iterator = iterator
+        }
+
+        public mutating func next() async -> Element? {
+            // This optional unwrap is okay because
+            // returning `nil` from this method signals
+            // the stream iterator has ended
+            // (which is what should happen with an
+            // error on a non-throwing stream)
+            try? await self.iterator.next()
+        }
+    }
+}
+
+/// Wraps an AsyncSequence such that it can be more easily stored
+/// together with other AsyncSequences that share the same type
+/// of Element.
+public struct AnyAsyncThrowingSequence<Element, Failure>: AsyncSequence, Sendable {
+    private let _makeAsyncIterator: @Sendable () -> AsyncIterator
+
+    public init<S: AsyncSequence & Sendable>(wrapping sequence: S)
+        where S.Element == Element, S.Failure == Error
+    {
+        self._makeAsyncIterator = {
+            AsyncIterator(wrapping: sequence.makeAsyncIterator())
+        }
+    }
+
+    public func makeAsyncIterator() -> AsyncIterator {
+        self._makeAsyncIterator()
+    }
+
+    public struct AsyncIterator: AsyncIteratorProtocol {
+        private var iterator: any AsyncIteratorProtocol<Element, Error>
+
+        init(wrapping iterator: any AsyncIteratorProtocol<Element, Error>) {
+            self.iterator = iterator
+        }
+
+        public mutating func next() async throws -> Element? {
+            try await self.iterator.next()
+        }
+    }
 }

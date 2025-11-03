@@ -21,7 +21,7 @@ func subscribe(
     context: any Sendable,
     variableValues: [String: Map] = [:],
     operationName: String? = nil
-) async throws -> Result<AsyncThrowingStream<GraphQLResult, Error>, GraphQLErrors> {
+) async throws -> Result<AnyAsyncThrowingSequence<GraphQLResult, Error>, GraphQLErrors> {
     let sourceResult = try await createSourceEventStream(
         schema: schema,
         documentAST: documentAST,
@@ -32,13 +32,8 @@ func subscribe(
     )
 
     return sourceResult.map { sourceStream in
-        AsyncThrowingStream<GraphQLResult, Error> {
-            // The type-cast below is required on Swift <6. Once we drop Swift 5 support it may be
-            // removed.
-            var iterator = sourceStream.makeAsyncIterator() as (any AsyncIteratorProtocol)
-            guard let eventPayload = try await iterator.next() else {
-                return nil
-            }
+        let anySourceStream = AnyAsyncThrowingSequence<GraphQLResult, Error>(wrapping: sourceStream)
+        let stream = anySourceStream.map { eventPayload in
             // Despite the warning, we must force unwrap because on optional unwrap, compiler
             // throws:
             // `marker protocol 'Sendable' cannot be used in a conditional cast`
@@ -52,6 +47,7 @@ func subscribe(
                 operationName: operationName
             )
         }
+        return .init(wrapping: sourceStream)
     }
 }
 
