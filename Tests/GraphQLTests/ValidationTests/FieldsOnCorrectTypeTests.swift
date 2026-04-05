@@ -1,5 +1,6 @@
-@testable import GraphQL
 import Testing
+
+@testable import GraphQL
 
 class FieldsOnCorrectTypeTests: ValidationTestCase {
     override init() {
@@ -59,14 +60,14 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         let errors = try assertInvalid(
             errorCount: 2,
             query: """
-            fragment typeKnownAgain on Pet {
-                unknown_pet_field {
-                    ... on Cat {
-                        unknown_cat_field
+                fragment typeKnownAgain on Pet {
+                    unknown_pet_field {
+                        ... on Cat {
+                            unknown_cat_field
+                        }
                     }
                 }
-            }
-            """
+                """
         )
 
         try assertValidationError(
@@ -88,7 +89,8 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
 
         try assertValidationError(
             error: errors.first, line: 1, column: 35,
-            message: "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+            message:
+                "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
         )
     }
 
@@ -124,7 +126,8 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
 
         try assertValidationError(
             error: errors.first, line: 1, column: 64,
-            message: "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+            message:
+                "Cannot query field \"meowVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
         )
     }
 
@@ -136,7 +139,8 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
 
         try assertValidationError(
             error: errors.first, line: 1, column: 48,
-            message: "Cannot query field \"mooVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+            message:
+                "Cannot query field \"mooVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
         )
     }
 
@@ -148,7 +152,8 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
 
         try assertValidationError(
             error: errors.first, line: 1, column: 53,
-            message: "Cannot query field \"kawVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
+            message:
+                "Cannot query field \"kawVolume\" on type \"Dog\". Did you mean \"barkVolume\"?"
         )
     }
 
@@ -176,35 +181,35 @@ class FieldsOnCorrectTypeTests: ValidationTestCase {
         )
     }
 
-//    @Test func invalidWhenDirectFieldSelectionOnUnion() throws {
-//        let errors = try assertInvalid(
-//            errorCount: 1,
-//            query: """
-//            fragment directFieldSelectionOnUnion on CatOrDog {
-//                directField
-//            }
-//            """
-//        )
-//
-//        try assertValidationError(
-//            error: errors.first, line: 1, column: 0,
-//            message: ""
-//        )
-//    }
-//
-//    @Test func invalidWhenDefinedOnImplementorsQueriedOnUnion() throws {
-//        let errors = try assertInvalid(
-//            errorCount: 1,
-//            query: """
-//            fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
-//                name
-//            }
-//            """
-//        )
-//
-//        try assertValidationError(
-//            error: errors.first, line: 1, column: 0,
-//            message: ""
-//        )
-//    }
+    //    @Test func invalidWhenDirectFieldSelectionOnUnion() throws {
+    //        let errors = try assertInvalid(
+    //            errorCount: 1,
+    //            query: """
+    //            fragment directFieldSelectionOnUnion on CatOrDog {
+    //                directField
+    //            }
+    //            """
+    //        )
+    //
+    //        try assertValidationError(
+    //            error: errors.first, line: 1, column: 0,
+    //            message: ""
+    //        )
+    //    }
+    //
+    //    @Test func invalidWhenDefinedOnImplementorsQueriedOnUnion() throws {
+    //        let errors = try assertInvalid(
+    //            errorCount: 1,
+    //            query: """
+    //            fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
+    //                name
+    //            }
+    //            """
+    //        )
+    //
+    //        try assertValidationError(
+    //            error: errors.first, line: 1, column: 0,
+    //            message: ""
+    //        )
+    //    }
 }
