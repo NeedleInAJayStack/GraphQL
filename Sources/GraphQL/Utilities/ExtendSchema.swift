@@ -382,8 +382,8 @@ func extendSchemaImpl(
             description: field.description,
             deprecationReason: field.deprecationReason,
             args: args,
-            resolve: field.resolve,
-            subscribe: field.subscribe,
+            resolve: field.resolveOption,
+            subscribe: field.subscribeOption,
             astNode: field.astNode
         )
     }

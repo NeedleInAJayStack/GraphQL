@@ -595,7 +595,7 @@ public func resolveField(
     )
 
     let returnType = fieldDef.type
-    let resolve = fieldDef.resolve ?? defaultResolve
+    let resolve = fieldDef.resolveOption ?? .init(defaultResolve)
 
     // Build a Map object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
@@ -628,13 +628,26 @@ public func resolveField(
 
     // Get the resolve func, regardless of if its result is normal
     // or abrupt (error).
-    let result = await resolveOrError(
-        resolve: resolve,
-        source: source,
-        args: args,
-        context: context,
-        info: info
-    )
+    let result: Result<(any Sendable)?, Error>
+    switch resolve {
+        case let .sync(resolve):
+            result = resolveOrError(
+                resolve: resolve,
+                source: source,
+                args: args,
+                context: context,
+                info: info
+            )
+        case let .async(resolve):
+            result = await resolveOrError(
+                resolve: resolve,
+                source: source,
+                args: args,
+                context: context,
+                info: info
+            )
+    }
+
 
     return try await completeValueCatchingError(
         exeContext: exeContext,
@@ -657,6 +670,23 @@ func resolveOrError(
 ) async -> Result<(any Sendable)?, Error> {
     do {
         let result = try await resolve(source, args, context, info)
+        return .success(result)
+    } catch {
+        return .failure(error)
+    }
+}
+
+/// Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
+/// function. Returns the result of `resolve` or the abrupt-return Error object.
+func resolveOrError(
+    resolve: GraphQLFieldResolveSync,
+    source: any Sendable,
+    args: Map,
+    context: any Sendable,
+    info: GraphQLResolveInfo
+) -> Result<(any Sendable)?, Error> {
+    do {
+        let result = try resolve(source, args, context, info)
         return .success(result)
     } catch {
         return .failure(error)
@@ -1043,7 +1073,7 @@ func defaultResolve(
     args _: Map,
     context _: any Sendable,
     info: GraphQLResolveInfo
-) async throws -> (any Sendable)? {
+) throws -> (any Sendable)? {
     guard let source = unwrap(source) else {
         return nil
     }

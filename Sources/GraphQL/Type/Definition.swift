@@ -392,8 +392,8 @@ func defineFieldMap(name: String, fields: GraphQLFieldMap) throws -> GraphQLFiel
             description: config.description,
             deprecationReason: config.deprecationReason,
             args: defineArgumentMap(args: config.args),
-            resolve: config.resolve,
-            subscribe: config.subscribe,
+            resolve: config.resolveOption,
+            subscribe: config.subscribeOption,
             astNode: config.astNode
         )
 
@@ -455,6 +455,18 @@ public typealias GraphQLIsTypeOf =
         _ info: GraphQLResolveInfo
     ) throws -> Bool
 
+public enum GraphQLFieldResolveOption: Sendable {
+    case async(resolve: GraphQLFieldResolve)
+    case sync(resolve: GraphQLFieldResolveSync)
+
+    init(_ resolve: @escaping GraphQLFieldResolve) {
+        self = .async(resolve: resolve)
+    }
+    init(_ resolve: @escaping GraphQLFieldResolveSync) {
+        self = .sync(resolve: resolve)
+    }
+}
+
 public typealias GraphQLFieldResolve =
     @Sendable (
         _ source: any Sendable,
@@ -462,6 +474,14 @@ public typealias GraphQLFieldResolve =
         _ context: any Sendable,
         _ info: GraphQLResolveInfo
     ) async throws -> (any Sendable)?
+
+public typealias GraphQLFieldResolveSync =
+    @Sendable (
+        _ source: any Sendable,
+        _ args: Map,
+        _ context: any Sendable,
+        _ info: GraphQLResolveInfo
+    ) throws -> (any Sendable)?
 
 public typealias GraphQLFieldResolveInput =
     @Sendable (
@@ -492,7 +512,25 @@ public final class GraphQLField: @unchecked Sendable {
     public let deprecationReason: String?
     public let description: String?
 
+    @available(*, deprecated, message: "Use `resolveOption` instead")
     public var resolve: GraphQLFieldResolve? {
+        get {
+            switch resolveOption {
+                case .none: return nil
+                case let .async(async):
+                    return async
+                case let .sync(sync):
+                    return { source, args, context, info in
+                        try sync(source, args, context, info)
+                    }
+            }
+        }
+        set {
+            resolveOption = newValue.map { .async(resolve: $0) }
+        }
+    }
+
+    var resolveOption: GraphQLFieldResolveOption? {
         get {
             fieldPropertyQueue.sync { _resolve }
         }
@@ -501,9 +539,27 @@ public final class GraphQLField: @unchecked Sendable {
         }
     }
 
-    private var _resolve: GraphQLFieldResolve?
+    private var _resolve: GraphQLFieldResolveOption?
 
+    @available(*, deprecated, message: "Use `subscribeOption` instead")
     public var subscribe: GraphQLFieldResolve? {
+        get {
+            switch subscribeOption {
+                case .none: return nil
+                case let .async(async):
+                    return async
+                case let .sync(sync):
+                    return { source, args, context, info in
+                        try sync(source, args, context, info)
+                    }
+            }
+        }
+        set {
+            subscribeOption = newValue.map { .async(resolve: $0) }
+        }
+    }
+
+    var subscribeOption: GraphQLFieldResolveOption? {
         get {
             fieldPropertyQueue.sync { _subscribe }
         }
@@ -512,7 +568,7 @@ public final class GraphQLField: @unchecked Sendable {
         }
     }
 
-    private var _subscribe: GraphQLFieldResolve?
+    private var _subscribe: GraphQLFieldResolveOption?
 
     public let astNode: FieldDefinition?
 
@@ -537,8 +593,8 @@ public final class GraphQLField: @unchecked Sendable {
         description: String? = nil,
         deprecationReason: String? = nil,
         args: GraphQLArgumentConfigMap = [:],
-        resolve: GraphQLFieldResolve?,
-        subscribe: GraphQLFieldResolve? = nil,
+        resolve: GraphQLFieldResolveOption?,
+        subscribe: GraphQLFieldResolveOption? = nil,
         astNode: FieldDefinition? = nil
     ) {
         self.type = type
@@ -548,6 +604,27 @@ public final class GraphQLField: @unchecked Sendable {
         self.astNode = astNode
         _resolve = resolve
         _subscribe = subscribe
+    }
+
+    @available(*, deprecated, message: "Use init with `GraphQLFieldResolveOption`")
+    public convenience init(
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: GraphQLArgumentConfigMap = [:],
+        resolve: GraphQLFieldResolve?,
+        subscribe: GraphQLFieldResolve? = nil,
+        astNode: FieldDefinition? = nil
+    ) {
+        self.init(
+            type: type,
+            description: description,
+            deprecationReason: deprecationReason,
+            args: args,
+            resolve: resolve.map { .async(resolve: $0) },
+            subscribe: resolve.map { .async(resolve: $0) },
+            astNode: astNode
+        )
     }
 
     public init(
@@ -564,7 +641,7 @@ public final class GraphQLField: @unchecked Sendable {
         self.description = description
         self.astNode = astNode
 
-        _resolve = { source, args, context, info in
+        _resolve = .sync { source, args, context, info in
             try resolve(source, args, context, info)
         }
         _subscribe = nil
@@ -578,12 +655,83 @@ public final class GraphQLFieldDefinition: Sendable {
     public let description: String?
     public let type: GraphQLOutputType
     public let args: [GraphQLArgumentDefinition]
-    public let resolve: GraphQLFieldResolve?
-    public let subscribe: GraphQLFieldResolve?
+    public let resolveOption: GraphQLFieldResolveOption?
+    public let subscribeOption: GraphQLFieldResolveOption?
     public let deprecationReason: String?
     public let isDeprecated: Bool
     public let astNode: FieldDefinition?
 
+    public var resolve: GraphQLFieldResolve? {
+        get {
+            switch resolveOption {
+                case .none: return nil
+                case let .async(async):
+                    return async
+                case let .sync(sync):
+                    return { source, args, context, info in
+                        try sync(source, args, context, info)
+                    }
+            }
+        }
+    }
+    public var subscribe: GraphQLFieldResolve? {
+        get {
+            switch subscribeOption {
+                case .none: return nil
+                case let .async(async):
+                    return async
+                case let .sync(sync):
+                    return { source, args, context, info in
+                        try sync(source, args, context, info)
+                    }
+            }
+        }
+    }
+
+    init(
+        name: String,
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: [GraphQLArgumentDefinition] = [],
+        resolve: GraphQLFieldResolveOption?,
+        subscribe: GraphQLFieldResolveOption? = nil,
+        astNode: FieldDefinition? = nil
+    ) {
+        self.name = name
+        self.description = description
+        self.type = type
+        self.args = args
+        self.resolveOption = resolve
+        self.subscribeOption = subscribe
+        self.deprecationReason = deprecationReason
+        isDeprecated = deprecationReason != nil
+        self.astNode = astNode
+    }
+
+    @available(*, deprecated, message: "Use init with `GraphQLFieldResolveOption`")
+    init(
+        name: String,
+        type: GraphQLOutputType,
+        description: String? = nil,
+        deprecationReason: String? = nil,
+        args: [GraphQLArgumentDefinition] = [],
+        resolve: GraphQLFieldResolveSync?,
+        subscribe: GraphQLFieldResolveSync? = nil,
+        astNode: FieldDefinition? = nil
+    ) {
+        self.name = name
+        self.description = description
+        self.type = type
+        self.args = args
+        self.resolveOption = resolve.map { .sync(resolve: $0) }
+        self.subscribeOption = subscribe.map { .sync(resolve: $0) }
+        self.deprecationReason = deprecationReason
+        isDeprecated = deprecationReason != nil
+        self.astNode = astNode
+    }
+
+    @available(*, deprecated, message: "Use init with `GraphQLFieldResolveOption`")
     init(
         name: String,
         type: GraphQLOutputType,
@@ -598,8 +746,8 @@ public final class GraphQLFieldDefinition: Sendable {
         self.description = description
         self.type = type
         self.args = args
-        self.resolve = resolve
-        self.subscribe = subscribe
+        self.resolveOption = resolve.map { .async(resolve: $0) }
+        self.subscribeOption = subscribe.map { .async(resolve: $0) }
         self.deprecationReason = deprecationReason
         isDeprecated = deprecationReason != nil
         self.astNode = astNode
@@ -611,8 +759,8 @@ public final class GraphQLFieldDefinition: Sendable {
             description: description,
             deprecationReason: deprecationReason,
             args: argConfigMap(),
-            resolve: resolve,
-            subscribe: subscribe,
+            resolve: resolveOption,
+            subscribe: subscribeOption,
             astNode: astNode
         )
     }
