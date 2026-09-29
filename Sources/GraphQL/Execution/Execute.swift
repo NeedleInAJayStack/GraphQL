@@ -340,12 +340,48 @@ func executeFields(
     path: IndexPath,
     fields: OrderedDictionary<String, [Field]>
 ) async throws -> OrderedDictionary<String, any Sendable> {
+    let synchronousFields: [(definition: GraphQLFieldDefinition, resolve: GraphQLFieldResolveSync?)] = try fields.map { field in
+        let definition = try getFieldDef(
+            schema: exeContext.schema,
+            parentType: parentType,
+            fieldName: field.value[0].name.value
+        )
+        let innerType = (definition.type as? GraphQLNonNull)?.ofType ?? definition.type
+        guard innerType is GraphQLLeafType else {
+            return (definition, nil)
+        }
+        switch definition.resolveOption {
+        case .none:
+            return (definition, defaultResolve)
+        case .sync(let resolve):
+            return (definition, resolve)
+        case .async:
+            return (definition, nil)
+        }
+    }
+
+    if synchronousFields.allSatisfy({ $0.resolve != nil }) {
+        var results = OrderedDictionary<String, any Sendable>()
+        for (index, field) in fields.enumerated() {
+            results[field.key] = try resolveSynchronousLeafField(
+                exeContext: exeContext,
+                parentType: parentType,
+                source: sourceValue,
+                fieldASTs: field.value,
+                path: path.appending(field.key),
+                definition: synchronousFields[index].definition,
+                resolve: synchronousFields[index].resolve!
+            ) ?? Map.null
+        }
+        return results
+    }
+
     return try await withThrowingTaskGroup(of: (String, (any Sendable)?).self) { group in
         // preserve field order by assigning to null and filtering later
         var results: OrderedDictionary<String, (any Sendable)?> =
             fields
             .mapValues { _ -> Any? in nil }
-        for field in fields {
+        for (index, field) in fields.enumerated() where synchronousFields[index].resolve == nil {
             group.addTask {
                 let fieldASTs = field.value
                 let fieldPath = path.appending(field.key)
@@ -360,11 +396,59 @@ func executeFields(
                 return (field.key, result)
             }
         }
+        // Start async siblings before running synchronous work on this task.
+        for (index, field) in fields.enumerated() {
+            guard let resolve = synchronousFields[index].resolve else { continue }
+            results[field.key] = try resolveSynchronousLeafField(
+                exeContext: exeContext,
+                parentType: parentType,
+                source: sourceValue,
+                fieldASTs: field.value,
+                path: path.appending(field.key),
+                definition: synchronousFields[index].definition,
+                resolve: resolve
+            ) ?? Map.null
+        }
         for try await result in group {
             results[result.0] = result.1
         }
         return results.compactMapValues { $0 }
     }
+}
+
+func resolveSynchronousLeafField(
+    exeContext: ExecutionContext,
+    parentType: GraphQLObjectType,
+    source: any Sendable,
+    fieldASTs: [Field],
+    path: IndexPath,
+    definition: GraphQLFieldDefinition,
+    resolve: GraphQLFieldResolveSync
+) throws -> (any Sendable)? {
+    let (args, info) = try prepareFieldResolution(
+        exeContext: exeContext,
+        parentType: parentType,
+        fieldASTs: fieldASTs,
+        path: path,
+        definition: definition
+    )
+    let result = resolveOrError(
+        resolve: resolve,
+        source: source,
+        args: args,
+        context: exeContext.context,
+        info: info
+    )
+    let leafType = (definition.type as? GraphQLNonNull)?.ofType ?? definition.type
+    return try completeSynchronousLeafValue(
+        exeContext: exeContext,
+        itemType: definition.type,
+        leafType: leafType as! GraphQLLeafType,
+        fieldASTs: fieldASTs,
+        info: info,
+        path: path,
+        result: result
+    )
 }
 
 /// Extracts the root type of the operation from the schema.
@@ -597,33 +681,12 @@ public func resolveField(
     let returnType = fieldDef.type
     let resolve = fieldDef.resolveOption ?? .init(defaultResolve)
 
-    // Build a Map object of arguments from the field.arguments AST, using the
-    // variables scope to fulfill any variable references.
-    // TODO: find a way to memoize, in case this field is within a List type.
-    let args = try getArgumentValues(
-        argDefs: fieldDef.args,
-        argASTs: fieldAST.arguments,
-        variables: exeContext.variableValues
-    )
-
-    // The resolve func's optional third argument is a context value that
-    // is provided to every resolve func within an execution. It is commonly
-    // used to represent an authenticated user, or request-specific caches.
-    let context = exeContext.context
-
-    // The resolve func's optional fourth argument is a collection of
-    // information about the current execution state.
-    let info = GraphQLResolveInfo(
-        fieldName: fieldName,
-        fieldASTs: fieldASTs,
-        returnType: returnType,
+    let (args, info) = try prepareFieldResolution(
+        exeContext: exeContext,
         parentType: parentType,
+        fieldASTs: fieldASTs,
         path: path,
-        schema: exeContext.schema,
-        fragments: exeContext.fragments,
-        rootValue: exeContext.rootValue,
-        operation: exeContext.operation,
-        variableValues: exeContext.variableValues
+        definition: fieldDef
     )
 
     // Get the resolve func, regardless of if its result is normal
@@ -635,7 +698,7 @@ public func resolveField(
                 resolve: resolve,
                 source: source,
                 args: args,
-                context: context,
+                context: exeContext.context,
                 info: info
             )
         case let .async(resolve):
@@ -643,11 +706,10 @@ public func resolveField(
                 resolve: resolve,
                 source: source,
                 args: args,
-                context: context,
+                context: exeContext.context,
                 info: info
             )
     }
-
 
     return try await completeValueCatchingError(
         exeContext: exeContext,
@@ -657,6 +719,46 @@ public func resolveField(
         path: path,
         result: result
     )
+}
+
+func prepareFieldResolution(
+    exeContext: ExecutionContext,
+    parentType: GraphQLObjectType,
+    fieldASTs: [Field],
+    path: IndexPath,
+    definition: GraphQLFieldDefinition
+) throws -> (Map, GraphQLResolveInfo) {
+    let fieldAST = fieldASTs[0]
+    let fieldName = fieldAST.name.value
+
+    // Build a Map object of arguments from the field.arguments AST, using the
+    // variables scope to fulfill any variable references.
+    // TODO: find a way to memoize, in case this field is within a List type.
+    let args = try getArgumentValues(
+        argDefs: definition.args,
+        argASTs: fieldAST.arguments,
+        variables: exeContext.variableValues
+    )
+
+    // The resolve func's optional third argument is a context value that
+    // is provided to every resolve func within an execution. It is commonly
+    // used to represent an authenticated user, or request-specific caches.
+    // The resolve func's optional fourth argument is a collection of
+    // information about the current execution state.
+    let info = GraphQLResolveInfo(
+        fieldName: fieldName,
+        fieldASTs: fieldASTs,
+        returnType: definition.type,
+        parentType: parentType,
+        path: path,
+        schema: exeContext.schema,
+        fragments: exeContext.fragments,
+        rootValue: exeContext.rootValue,
+        operation: exeContext.operation,
+        variableValues: exeContext.variableValues
+    )
+
+    return (args, info)
 }
 
 /// Isolates the "ReturnOrAbrupt" behavior to not de-opt the `resolveField`
@@ -892,6 +994,26 @@ func completeListValue(
 
     let itemType = returnType.ofType
 
+    // Leaf completion cannot suspend. Avoid creating a task for every scalar or enum item.
+    let leafType = (itemType as? GraphQLNonNull)?.ofType ?? itemType
+    if let leafType = leafType as? GraphQLLeafType {
+        var results: [(any Sendable)?] = []
+        results.reserveCapacity(result.count)
+        for (index, item) in result.enumerated() {
+            let value = try completeSynchronousLeafValue(
+                exeContext: exeContext,
+                itemType: itemType,
+                leafType: leafType,
+                fieldASTs: fieldASTs,
+                info: info,
+                path: path.appending(index),
+                result: .success(item)
+            )
+            results.append(value ?? Map.null)
+        }
+        return results
+    }
+
     return try await withThrowingTaskGroup(of: (Int, (any Sendable)?).self) { group in
         // To preserve order, match size to result, and filter out nils at the end.
         var results = [(any Sendable)?](repeating: nil, count: result.count)
@@ -916,6 +1038,53 @@ func completeListValue(
             results[result.0] = result.1
         }
         return results.compactMap { $0 }
+    }
+}
+
+func completeSynchronousLeafValue(
+    exeContext: ExecutionContext,
+    itemType: GraphQLType,
+    leafType: GraphQLLeafType,
+    fieldASTs: [Field],
+    info: GraphQLResolveInfo,
+    path: IndexPath,
+    result: Result<(any Sendable)?, Error>
+) throws -> Map? {
+    do {
+        let item = try result.get()
+        let value: Map?
+        if let item, let unwrapped = unwrap(item) {
+            value = try completeLeafValue(returnType: leafType, result: unwrapped)
+        } else {
+            value = nil
+        }
+
+        if itemType is GraphQLNonNull, value == nil {
+            throw GraphQLError(
+                message: "Cannot return null for non-nullable field \(info.parentType.name).\(info.fieldName).",
+                nodes: fieldASTs,
+                path: path
+            )
+        }
+        return value
+    } catch {
+        let fieldError: GraphQLError
+        if let graphQLError = error as? GraphQLError, graphQLError.path.elements.isEmpty {
+            fieldError = GraphQLError(
+                message: graphQLError.message,
+                nodes: fieldASTs,
+                path: path,
+                originalError: graphQLError,
+                extensions: graphQLError.extensions
+            )
+        } else {
+            fieldError = locatedError(originalError: error, nodes: fieldASTs, path: path)
+        }
+        if itemType is GraphQLNonNull {
+            throw fieldError
+        }
+        exeContext.append(error: fieldError)
+        return nil
     }
 }
 

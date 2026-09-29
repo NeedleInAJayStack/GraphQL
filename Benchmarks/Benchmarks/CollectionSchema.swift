@@ -47,6 +47,18 @@ func collectionSchema(count: Int) -> (schema: GraphQLSchema, collection: [Collec
     return (schema, staticCollection)
 }
 
+func leafListSchema(count: Int) -> GraphQLSchema {
+    let values = Array(0..<count)
+    return try! GraphQLSchema(query: GraphQLObjectType(
+        name: "Query",
+        fields: [
+            "values": GraphQLField(type: GraphQLList(GraphQLInt)) { _, _, _, _ in
+                values
+            }
+        ]
+    ))
+}
+
 
 
 func collectionScalarSchema(count: Int) -> GraphQLSchema {

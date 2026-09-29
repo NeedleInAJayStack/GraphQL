@@ -39,7 +39,13 @@ let benchmarks: @Sendable () -> Void = {
                 """
         )
     } setup: {
-        return collectionSchema(count: 10_000).schema
+        return collectionSchema(count: 1_000).schema
+    }
+
+    Benchmark("resolution:leaf-list") { _, schema in
+        let result = try await graphql(schema: schema, request: "{ values }")
+    } setup: {
+        return leafListSchema(count: 1_000)
     }
 
     // Benchmarks the large static array exposed as a custom scalar
@@ -54,7 +60,7 @@ let benchmarks: @Sendable () -> Void = {
                 """
         )
     } setup: {
-        return collectionScalarSchema(count: 10_000)
+        return collectionScalarSchema(count: 1_000)
     }
 
     // Benchmarks the time to encode a GraphQLResult
