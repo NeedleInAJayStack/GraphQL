@@ -3,6 +3,7 @@ import class Foundation.JSONEncoder
 import GraphQL
 
 let benchmarks: @Sendable () -> Void = {
+    startProfileRecorderIfRequested()
     let encoder = JSONEncoder()
 
     Benchmark("graphql") { _ in
