@@ -111,7 +111,7 @@ let CharacterInterface = try! GraphQLInterfaceType(
             description: "All secrets about their past."
         ),
     ] },
-    resolveType: { character, _ in
+    resolveType: { character, _, _ in
         switch character {
         case is Human:
             return "Human"
@@ -174,7 +174,7 @@ let HumanType = try! GraphQLObjectType(
         ),
     ],
     interfaces: [CharacterInterface],
-    isTypeOf: { source, _ in
+    isTypeOf: { source, _, _ in
         source is Human
     }
 )
@@ -232,7 +232,7 @@ let DroidType = try! GraphQLObjectType(
         ),
     ],
     interfaces: [CharacterInterface],
-    isTypeOf: { source, _ in
+    isTypeOf: { source, _, _ in
         source is Droid
     }
 )

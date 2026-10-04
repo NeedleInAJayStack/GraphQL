@@ -1,6 +1,7 @@
 import Benchmark
 import class Foundation.JSONEncoder
 import GraphQL
+import NIO
 
 let benchmarks: @Sendable () -> Void = {
     let encoder = JSONEncoder()
@@ -21,7 +22,8 @@ let benchmarks: @Sendable () -> Void = {
                     }
                 }
             }
-            """
+            """,
+            eventLoopGroup: MultiThreadedEventLoopGroup.singleton
         )
     }
 
@@ -36,7 +38,8 @@ let benchmarks: @Sendable () -> Void = {
                         value2
                     }
                 }
-                """
+                """,
+            eventLoopGroup: MultiThreadedEventLoopGroup.singleton
         )
     } setup: {
         return collectionSchema(count: 10_000).schema
@@ -51,7 +54,8 @@ let benchmarks: @Sendable () -> Void = {
                 query {
                     collection
                 }
-                """
+                """,
+            eventLoopGroup: MultiThreadedEventLoopGroup.singleton
         )
     } setup: {
         return collectionScalarSchema(count: 10_000)
@@ -70,7 +74,8 @@ let benchmarks: @Sendable () -> Void = {
                         value2
                     }
                 }
-                """
+                """,
+            eventLoopGroup: MultiThreadedEventLoopGroup.singleton
         )
     }
 

@@ -273,7 +273,7 @@ extension GraphQLScalarType: Hashable {
  *     )
  *
  */
-public final class GraphQLObjectType {
+public final class GraphQLObjectType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public var fields: () throws -> GraphQLFieldMap
@@ -655,7 +655,7 @@ public func isRequiredArgument(_ arg: GraphQLArgumentDefinition) -> Bool {
  *     )
  *
  */
-public final class GraphQLInterfaceType {
+public final class GraphQLInterfaceType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let resolveType: GraphQLTypeResolve?
@@ -857,7 +857,7 @@ extension GraphQLUnionType: Hashable {
  * Note: If a value is not provided in a definition, the name of the enum value
  * will be used as its internal value.
  */
-public final class GraphQLEnumType {
+public final class GraphQLEnumType: @unchecked Sendable {
     public let name: String
     public let description: String?
     public let values: [GraphQLEnumValueDefinition]
