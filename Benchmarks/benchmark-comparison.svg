@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" font-family="Helvetica,Arial,sans-serif" font-size="12"><rect width="100%" height="100%" fill="#fff"/>
+<text x="20" y="30" font-size="20" font-weight="bold">GraphQLSwift benchmarks: v4.3.0 vs v3.0.2 (p50, lower is better)</text>
+<rect x="20" y="45" width="12" height="12" fill="#2b7de9"/><text x="38" y="56">v4.3.0</text><rect x="100" y="45" width="12" height="12" fill="#e9822b"/><text x="118" y="56">v3.0.2</text>
+<text x="170" y="95" font-weight="bold">Instructions</text>
+<text x="385" y="95" font-weight="bold">Malloc (total)</text>
+<text x="600" y="95" font-weight="bold">Peak memory</text>
+<text x="815" y="95" font-weight="bold">Wall clock</text>
+<text x="1030" y="95" font-weight="bold">Total CPU</text>
+<text x="20" y="148" font-weight="bold">encoding:GraphQLResult</text>
+<rect x="170" y="120" width="130.0" height="22" fill="#2b7de9"/><text x="304.0" y="136">2775 M</text>
+<rect x="170" y="148" width="128.8" height="22" fill="#e9822b"/><text x="302.8" y="164">2749 M</text>
+<rect x="385" y="120" width="130.0" height="22" fill="#2b7de9"/><text x="519.0" y="136">900 K</text>
+<rect x="385" y="148" width="130.0" height="22" fill="#e9822b"/><text x="519.0" y="164">900 K</text>
+<rect x="600" y="120" width="130.0" height="22" fill="#2b7de9"/><text x="734.0" y="136">1437 MB</text>
+<rect x="600" y="148" width="34.6" height="22" fill="#e9822b"/><text x="638.6" y="164">383 MB</text>
+<rect x="815" y="120" width="130.0" height="22" fill="#2b7de9"/><text x="949.0" y="136">147 ms</text>
+<rect x="815" y="148" width="125.6" height="22" fill="#e9822b"/><text x="944.6" y="164">142 ms</text>
+<rect x="1030" y="120" width="130.0" height="22" fill="#2b7de9"/><text x="1164.0" y="136">149 ms</text>
+<rect x="1030" y="148" width="123.9" height="22" fill="#e9822b"/><text x="1157.9" y="164">142 ms</text>
+<text x="20" y="248" font-weight="bold">encoding:baseline</text>
+<rect x="170" y="220" width="130.0" height="22" fill="#2b7de9"/><text x="304.0" y="236">1512 M</text>
+<rect x="170" y="248" width="129.4" height="22" fill="#e9822b"/><text x="303.4" y="264">1505 M</text>
+<rect x="385" y="220" width="130.0" height="22" fill="#2b7de9"/><text x="519.0" y="236">500 K</text>
+<rect x="385" y="248" width="130.0" height="22" fill="#e9822b"/><text x="519.0" y="264">500 K</text>
+<rect x="600" y="220" width="130.0" height="22" fill="#2b7de9"/><text x="734.0" y="236">82 MB</text>
+<rect x="600" y="248" width="118.9" height="22" fill="#e9822b"/><text x="722.9" y="264">75 MB</text>
+<rect x="815" y="220" width="130.0" height="22" fill="#2b7de9"/><text x="949.0" y="236">75 ms</text>
+<rect x="815" y="248" width="126.5" height="22" fill="#e9822b"/><text x="945.5" y="264">73 ms</text>
+<rect x="1030" y="220" width="130.0" height="22" fill="#2b7de9"/><text x="1164.0" y="236">75 ms</text>
+<rect x="1030" y="248" width="126.5" height="22" fill="#e9822b"/><text x="1160.5" y="264">73 ms</text>
+<text x="20" y="348" font-weight="bold">graphql</text>
+<rect x="170" y="320" width="26.5" height="22" fill="#2b7de9"/><text x="200.5" y="336">5.505 M</text>
+<rect x="170" y="348" width="130.0" height="22" fill="#e9822b"/><text x="304.0" y="364">27 M</text>
+<rect x="385" y="320" width="25.4" height="22" fill="#2b7de9"/><text x="414.4" y="336">1.758 K</text>
+<rect x="385" y="348" width="130.0" height="22" fill="#e9822b"/><text x="519.0" y="364">9 K</text>
+<rect x="600" y="320" width="130.0" height="22" fill="#2b7de9"/><text x="734.0" y="336">33 MB</text>
+<rect x="600" y="348" width="102.4" height="22" fill="#e9822b"/><text x="706.4" y="364">26 MB</text>
+<rect x="815" y="320" width="29.1" height="22" fill="#2b7de9"/><text x="848.1" y="336">0.262 ms</text>
+<rect x="815" y="348" width="130.0" height="22" fill="#e9822b"/><text x="949.0" y="364">1.169 ms</text>
+<rect x="1030" y="320" width="24.9" height="22" fill="#2b7de9"/><text x="1058.9" y="336">0.536 ms</text>
+<rect x="1030" y="348" width="130.0" height="22" fill="#e9822b"/><text x="1164.0" y="364">2.8 ms</text>
+<text x="20" y="448" font-weight="bold">resolution</text>
+<rect x="170" y="420" width="32.6" height="22" fill="#2b7de9"/><text x="206.6" y="436">1689 M</text>
+<rect x="170" y="448" width="130.0" height="22" fill="#e9822b"/><text x="304.0" y="464">6732 M</text>
+<rect x="385" y="420" width="36.4" height="22" fill="#2b7de9"/><text x="425.4" y="436">736 K</text>
+<rect x="385" y="448" width="130.0" height="22" fill="#e9822b"/><text x="519.0" y="464">2632 K</text>
+<rect x="600" y="420" width="130.0" height="22" fill="#2b7de9"/><text x="734.0" y="436">256 MB</text>
+<rect x="600" y="448" width="55.4" height="22" fill="#e9822b"/><text x="659.4" y="464">109 MB</text>
+<rect x="815" y="420" width="63.3" height="22" fill="#2b7de9"/><text x="882.3" y="436">55 ms</text>
+<rect x="815" y="448" width="130.0" height="22" fill="#e9822b"/><text x="949.0" y="464">113 ms</text>
+<rect x="1030" y="420" width="54.1" height="22" fill="#2b7de9"/><text x="1088.1" y="436">381 ms</text>
+<rect x="1030" y="448" width="130.0" height="22" fill="#e9822b"/><text x="1164.0" y="464">915 ms</text>
+<text x="20" y="548" font-weight="bold">resolution:scalar</text>
+<rect x="170" y="520" width="130.0" height="22" fill="#2b7de9"/><text x="304.0" y="536">32 M</text>
+<rect x="170" y="548" width="130.0" height="22" fill="#e9822b"/><text x="304.0" y="564">32 M</text>
+<rect x="385" y="520" width="130.0" height="22" fill="#2b7de9"/><text x="519.0" y="536">20 K</text>
+<rect x="385" y="548" width="130.0" height="22" fill="#e9822b"/><text x="519.0" y="564">20 K</text>
+<rect x="600" y="520" width="78.0" height="22" fill="#2b7de9"/><text x="682.0" y="536">27 MB</text>
+<rect x="600" y="548" width="130.0" height="22" fill="#e9822b"/><text x="734.0" y="564">45 MB</text>
+<rect x="815" y="520" width="126.5" height="22" fill="#2b7de9"/><text x="945.5" y="536">1.752 ms</text>
+<rect x="815" y="548" width="130.0" height="22" fill="#e9822b"/><text x="949.0" y="564">1.8 ms</text>
+<rect x="1030" y="520" width="128.2" height="22" fill="#2b7de9"/><text x="1162.2" y="536">1.782 ms</text>
+<rect x="1030" y="548" width="130.0" height="22" fill="#e9822b"/><text x="1164.0" y="564">1.807 ms</text>
+</svg>
